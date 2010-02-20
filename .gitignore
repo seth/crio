@@ -1,1 +1,3 @@
 *.o
+/src/crio/runtests
+/src/crio/runtests.c
