@@ -1,4 +1,2 @@
-useDynLib("crio")
-
+useDynLib("crio", "crio_eval")
 exportPattern("^[^\\.]")
-
