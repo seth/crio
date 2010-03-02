@@ -1,21 +1,51 @@
 #include "crio.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
+static struct crio_stream *
+copy_stream_filename(struct crio_stream *stream,
+                     const char *filename)
+{
+    if (stream) {
+        char *fname = NULL;
+        if (filename) {
+            int len = strlen(filename) + 1;
+            fname = malloc(sizeof(char) * len);
+            if (!fname) {
+                crio_stream_free(stream);
+                return NULL;
+            }
+            memcpy(fname, filename, len);
+        }
+        stream->filename = fname;
+    }
+    return stream;
+}
 
 struct crio_stream *
-crio_stream_make(int (*read)(void *fh, void *ctx),
+crio_stream_make(int (*read)(struct crio_stream *stream),
                  void *fh,
+                 char *filename,
                  void *ctx)
 {
     struct crio_stream *stream = malloc(sizeof(struct crio_stream));
+    char *fname = NULL;
+    if (filename) {
+        int len = strlen(filename) + 1;
+        fname = malloc(sizeof(char) * len);
+        memcpy(fname, filename, len);
+    }
     if (stream) {
         stream->read = read;
         stream->file = fh;
         stream->ctx = ctx;
         stream->filters = NULL;
+        stream->filter_count = 0;
+        stream->nfiltered = 0;
+        stream->nread = 0;
     }
-    return stream;
+    return copy_stream_filename(stream, filename);
 }
 
 static void crio_filter_free(struct crio_filter *cf)
@@ -32,15 +62,34 @@ static void crio_filter_free(struct crio_filter *cf)
 void crio_stream_free(struct crio_stream *stream)
 {
     crio_filter_free(stream->filters);
+    if (stream->filename) free(stream->filename);
     free(stream);
     stream = NULL;
 }
 
+
+struct crio_stream *
+crio_reset_file(struct crio_stream *stream,
+                void *fh,
+                char *filename)
+{
+    free(stream->filename);
+    stream->filename = NULL;
+    stream->file = fh;
+    /* returns NULL if allocation fails */
+    stream = copy_stream_filename(stream, filename);
+    if (stream) {
+        stream->nread = 0;
+        stream->nfiltered = 0;
+    }
+    return stream;
+}
+
 struct crio_stream *
 crio_add_filter(struct crio_stream *stream,
-                       const char *name,
-                       int (*filter)(void *ctx, void *filter_ctx),
-                       void *filter_ctx)
+                const char *name,
+                int (*filter)(struct crio_stream *stream, void *filter_ctx),
+                void *filter_ctx)
 {
     struct crio_filter *cf;
     if (!(cf = malloc(sizeof(struct crio_filter)))) return NULL;
@@ -57,13 +106,42 @@ crio_add_filter(struct crio_stream *stream,
 
 int crio_next(struct crio_stream *stream)
 {
-    int res, i;
+    int res, i, fres;
     struct crio_filter *cf;
-    while (CRIO_OK == (res = stream->read(stream->file, stream->ctx))) {
-        for (i = 0, cf = stream->filters; cf; cf = cf->next, i++) {
-            if (!cf->filter(stream->ctx, cf->filter_ctx)) break;
+    while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
+        i = 0;
+        for (cf = stream->filters; cf; cf = cf->next) {
+            fres = cf->filter(stream, cf->filter_ctx);
+            if (CRIO_FILT_FAIL == fres) break;
+            else if (CRIO_FILT_PASS == fres) i++;
+            else return fres; /* must be error */
         }
-        if (i == stream->filter_count) break;
+        if (i == stream->filter_count) {
+            stream->nfiltered++;
+            break;
+        }
     }
+    if (res == CRIO_EOF) stream->nread--;
     return res;
+}
+
+void crio_set_errmsg(struct crio_stream *stream, const char *msg)
+{
+    int len = strlen(msg);
+    char *fname = stream->filename ? stream->filename : "";
+    /* max size of record count is ceil(log10(2^64)) => 20.  Then we
+     * need 17 for the template */
+    int add_len = strlen(fname) + 20 + 17;
+    strncpy(stream->error_message, msg, sizeof(stream->error_message) - 1);
+    stream->error_message[sizeof(stream->error_message) - 1] = '\0';
+    if (add_len < sizeof(stream->error_message) - len - 1) {
+        char *s = stream->error_message + len;
+        snprintf(s, CRIO_ERRBUF_SIZE - len, 
+                 " [file: %s, record: %d]", fname, stream->nread);
+    }
+}
+
+const char * crio_errmsg(struct crio_stream *stream)
+{
+    return (const char *)stream->error_message;
 }
