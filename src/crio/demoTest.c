@@ -40,7 +40,7 @@ void Test_demo_crio_err(CuTest *tc)
     FILE *file = fopen("demoTest.c", "r");
     int score = 0;
     struct crio_stream *stream = crio_stream_make(demo_read_int, file, &score);
-    int res = crio_stream_next(stream);
+    int res = crio_next(stream);
     CuAssertIntEquals(tc, CRIO_ERR, res);
     fclose(file);
     free(stream);
@@ -52,10 +52,10 @@ void Test_demo_crio(CuTest *tc)
     char line[256];
     memset(line, 0, 256);
     struct crio_stream *stream = crio_stream_make(demo_read, file, line);
-    crio_stream_add_filter(stream, "nodigits", demo_filter, NULL);
+    crio_add_filter(stream, "nodigits", demo_filter, NULL);
     char *expect[] = {"abc", "def", "ghi", "jkl"};
     int res, i = 0;
-    while (CRIO_OK == (res = crio_stream_next(stream))) {
+    while (CRIO_OK == (res = crio_next(stream))) {
         CuAssertTrue(tc, i < 4);
         CuAssertStrEquals(tc, expect[i], line);
         i++;
@@ -65,3 +65,12 @@ void Test_demo_crio(CuTest *tc)
     fclose(file);
     free(stream);
 }
+
+/* TODO:
+   - test no filter case
+   - test two filter case
+     - early exit if first filter fails
+     - logic really is AND
+   - three filter case for completeness
+   - test filter returns error case
+ */

@@ -37,7 +37,7 @@ void crio_stream_free(struct crio_stream *stream)
 }
 
 struct crio_stream *
-crio_stream_add_filter(struct crio_stream *stream,
+crio_add_filter(struct crio_stream *stream,
                        const char *name,
                        int (*filter)(void *ctx, void *filter_ctx),
                        void *filter_ctx)
@@ -55,7 +55,7 @@ crio_stream_add_filter(struct crio_stream *stream,
 }
 
 
-int crio_stream_next(struct crio_stream *stream)
+int crio_next(struct crio_stream *stream)
 {
     int res, i;
     struct crio_filter *cf;

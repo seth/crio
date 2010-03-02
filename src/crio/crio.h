@@ -49,13 +49,13 @@ void crio_stream_free(struct crio_stream *stream);
  * context.  'filter_ctx' is the filter specific context. Returns a
  * pointer to the stream or NULL if allocation fails. */
 struct crio_stream *
-crio_stream_add_filter(struct crio_stream *stream,
+crio_add_filter(struct crio_stream *stream,
                        const char *name,
                        int (*filter)(void *ctx, void *filter_ctx),
                        void *filter_ctx);
 
-/* user code will call crio_stream_next in a loop to process the
+/* user code will call crio_next in a loop to process the
    stream */
-int crio_stream_next(struct crio_stream *);
+int crio_next(struct crio_stream *);
 
 #endif  /* CRIO_H_ */
