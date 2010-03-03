@@ -1,0 +1,18 @@
+PKG_CFLAGS = -I./crio
+PKG_LIBS = -L./crio -lcrio
+
+.PHONY: all criolib cp_headers
+
+all: $(SHLIB)
+	echo $(CFLAGS)
+$(SHLIB): criolib cp_headers
+
+criolib:
+	(cd crio; $(MAKE) clean lib test WITH_R=1 \
+         CFLAGS="$(CFLAGS) $(CPICFLAGS)" \
+         CPPFLAGS="$(CPPFLAGS)" \
+         CC="$(CC)")
+
+cp_headers:
+	mkdir -p ../inst/include && \
+	cp crio/crio.h ../inst/include
