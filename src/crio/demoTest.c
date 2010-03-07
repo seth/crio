@@ -113,6 +113,7 @@ void Test_demo_crio_err(CuTest *tc)
 void Test_filter_has_error(CuTest *tc)
 {
     struct demo_int_ctx ctx;
+    ctx.value = 4;
     struct crio_stream *stream = crio_stream_make(demo_read_noop, NULL, "noop", 
                                                   &ctx);
     crio_add_filter(stream, "ferr", filter_with_error, NULL);
