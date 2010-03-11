@@ -1,3 +1,6 @@
 *.o
+*.so
+*.a
 /src/crio/runtests
 /src/crio/runtests.c
+inst/include/crio_types.h

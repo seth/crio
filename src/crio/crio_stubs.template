@@ -1,0 +1,26 @@
+#include <Rinternals.h>
+#include <R_ext/Rdynload.h>
+#include "crio_types.h"
+
+#define PKG "crio"
+#define DECL_FP(ret, name, args) ret (*name)args
+#define CAST_FP(ret, args) (ret (*)args)
+#define GET_FP(name) R_GetCCallable(PKG, #name)
+#define INFP(ret, name, args) DECL_FP(ret, name, args) = NULL
+#define MKFP(ret, name, args) name = CAST_FP(ret, args) GET_FP(name)
+
+
+/* Declare API function pointers */
+% api.each do |p|
+<%= init_func_ptr(p) %>
+
+% end
+
+/* call this function inside YourPackage_init */
+void crio_initialize_stubs()
+{
+% api.each do |p|
+    <%= set_func_ptr(p) %>
+% end
+}
+
