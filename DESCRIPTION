@@ -1,7 +1,7 @@
 Package: crio
 Type: Package
 Title: Utilities for C-level I/O in R packages
-Version: 0.0.2
+Version: 0.0.3
 Author: S. Falcon
 Maintainer: S. Falcon <sfalcon@fhcrc.org>
 Description: Coming soon

@@ -12,22 +12,36 @@ def make_header_decl(p)
   ans.join("\n")
 end
 
+def make_extern_fp_decl(p)
+  spc = " " * 4
+  ans = ["extern", p[:return], "(*#{p[:name]})(",
+         p[:args].map { |a| spc + a }.join(",\n")]
+  ans[-1] = ans[-1] + ");"
+  ans.join("\n")
+end
+
 def api_for(api, name)
   api.find { |a| a[:name] == name }
 end
 
 def init_func_ptr(p)
   args = p[:args].join(", ")
-  "INFP(#{p[:return]}, #{p[:name]}, (#{args}));"
+  spc = "\n" + (" " * 5)
+  "INFP(#{p[:return]},#{spc}#{p[:name]},#{spc}(#{args}));\n"
 end
 
 def set_func_ptr(p)
   args = p[:args].join(", ")
-  "MKFP(#{p[:return]}, #{p[:name]}, (#{args}));"
+  spc = "\n" + (" " * 9)
+  "MKFP(#{p[:return]},#{spc}#{p[:name]},#{spc}(#{args}));\n"
 end
 
-def declare(api, name)
+def declare_func(api, name)
   make_header_decl(api_for(api, name))
+end
+
+def declare_fp(api, name)
+  make_extern_fp_decl(api_for(api, name))
 end
 
 api = [
@@ -81,10 +95,18 @@ api = [
        }
       ]
 
-crio_h_template = ERB.new(open("crio_h.template").read, 0, "%<>")
+crio_h_template = ERB.new(open("crio_h.template").read)
 crio_stubs_template = ERB.new(open("crio_stubs.template").read, 0, "%<>")
 
 fn = "crio.h"
+alias :declare :declare_func
+puts "writing: #{fn}"
+open(fn, "w") do |f|
+  f.write(crio_h_template.result(binding))
+end
+
+fn = "../../inst/include/crio.h"
+alias :declare :declare_fp
 puts "writing: #{fn}"
 open(fn, "w") do |f|
   f.write(crio_h_template.result(binding))

@@ -16,3 +16,7 @@ criolib:
 cp_headers:
 	mkdir -p ../inst/include && \
 	cp crio/crio_types.h ../inst/include
+
+clean:
+	-@rm -fv *.o *.so
+	(cd crio; $(MAKE) clean)

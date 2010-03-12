@@ -20,6 +20,7 @@
  * number of records passing the filters. */
 <%= declare(api, "crio_reset_file") %>
 
+
 /* Add a filter to a stream.  Filters are composed with AND, executed
  * in a LIFO order; if the first filter executed returns 0, no other
  * filters will be run for that record.
@@ -30,17 +31,20 @@
  * fails. */
 <%= declare(api, "crio_add_filter") %>
 
+
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the
    user-supplied filters is found. */
 <%= declare(api, "crio_next") %>
 
+
 /* Set the error message on the specified stream.  The filename and
  * current record count context will be appended to the error message.
  * Error messages including context must be less than 1023 characters.
- * TODO: enhance this with va_list so messages can do easy string
- * interpolation */
+ * The fmt argument is treated as a format via sprintf along with any
+ * additional arguments. */
 <%= declare(api, "crio_set_errmsg") %>
+
 
 /* Return the current error message for a stream. */
 <%= declare(api, "crio_errmsg") %>
