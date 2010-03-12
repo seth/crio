@@ -34,10 +34,8 @@ static int demo_read_int(struct crio_stream *stream)
         char *endptr;
         ctx->value = (int)strtol(data[ctx->file_index], &endptr, 10);
         if (endptr == data[ctx->file_index]) {
-            char ebuf[256];
-            sprintf(ebuf, "demo_read_int: can't parse int from '%s'",
-                    data[ctx->file_index]);
-            crio_set_errmsg(stream, ebuf);
+            crio_set_errmsg(stream, "demo_read_int: can't parse int from '%s'",
+                            data[ctx->file_index]);
             res = CRIO_ERR;
         } else {
             res = CRIO_OK;
@@ -70,9 +68,7 @@ static int has_k_filter(struct crio_stream *stream, void *fctx)
 static int filter_with_error(struct crio_stream *stream, void *fctx)
 {
     struct demo_int_ctx *ctx = (struct demo_int_ctx *)stream->ctx;
-    char msg[256];
-    sprintf(msg, "filter_with_error failed with: %d", ctx->value);
-    crio_set_errmsg(stream, msg);
+    crio_set_errmsg(stream, "filter_with_error failed with: %d", ctx->value);
     return CRIO_ERR;
 }
 

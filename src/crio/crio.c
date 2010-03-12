@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 static struct crio_stream *
 copy_stream_filename(struct crio_stream *stream,
@@ -125,16 +126,19 @@ int crio_next(struct crio_stream *stream)
     return res;
 }
 
-void crio_set_errmsg(struct crio_stream *stream, const char *msg)
+void crio_set_errmsg(struct crio_stream *stream, const char *fmt, ...)
 {
-    int len = strlen(msg);
+    int len;
+    va_list(ap);
+    va_start(ap, fmt);
+    vsnprintf(stream->error_message, CRIO_ERRBUF_SIZE, fmt, ap);
+    va_end(ap);
+    len = strlen(stream->error_message);
     char *fname = stream->filename ? stream->filename : "";
     /* max size of record count is ceil(log10(2^64)) => 20.  Then we
      * need 17 for the template */
     int add_len = strlen(fname) + 20 + 17;
-    strncpy(stream->error_message, msg, sizeof(stream->error_message) - 1);
-    stream->error_message[sizeof(stream->error_message) - 1] = '\0';
-    if (add_len < sizeof(stream->error_message) - len - 1) {
+    if (add_len < CRIO_ERRBUF_SIZE - len - 1) {
         char *s = stream->error_message + len;
         snprintf(s, CRIO_ERRBUF_SIZE - len, 
                  " [file: %s, record: %d]", fname, stream->nread);

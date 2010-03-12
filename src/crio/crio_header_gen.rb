@@ -71,7 +71,7 @@ api = [
        {
          :return => "void",
          :name => "crio_set_errmsg",
-         :args => ["struct crio_stream *stream", "const char *msg"]
+         :args => ["struct crio_stream *stream", "const char *fmt", "..."]
        },
 
        {

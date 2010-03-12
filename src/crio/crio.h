@@ -56,7 +56,8 @@ crio_next(
 void
 crio_set_errmsg(
     struct crio_stream *stream,
-    const char *msg);
+    const char *fmt,
+    ...);
 /* Return the current error message for a stream. */
 const char *
 crio_errmsg(

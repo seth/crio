@@ -16,7 +16,7 @@ INFP(void, crio_stream_free, (struct crio_stream *stream));
 INFP(struct crio_stream *, crio_reset_file, (struct crio_stream *stream, void *fh, char *filename));
 INFP(struct crio_stream *, crio_add_filter, (struct crio_stream *stream, const char *name, int (*filter)(struct crio_stream *stream, void *filter_ctx), void *filter_ctx));
 INFP(int, crio_next, (struct crio_stream *));
-INFP(void, crio_set_errmsg, (struct crio_stream *stream, const char *msg));
+INFP(void, crio_set_errmsg, (struct crio_stream *stream, const char *fmt, ...));
 INFP(const char *, crio_errmsg, (struct crio_stream *stream));
 
 /* call this function inside YourPackage_init */
@@ -27,7 +27,7 @@ void crio_initialize_stubs()
     MKFP(struct crio_stream *, crio_reset_file, (struct crio_stream *stream, void *fh, char *filename));
     MKFP(struct crio_stream *, crio_add_filter, (struct crio_stream *stream, const char *name, int (*filter)(struct crio_stream *stream, void *filter_ctx), void *filter_ctx));
     MKFP(int, crio_next, (struct crio_stream *));
-    MKFP(void, crio_set_errmsg, (struct crio_stream *stream, const char *msg));
+    MKFP(void, crio_set_errmsg, (struct crio_stream *stream, const char *fmt, ...));
     MKFP(const char *, crio_errmsg, (struct crio_stream *stream));
 }
 
