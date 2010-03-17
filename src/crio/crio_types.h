@@ -26,6 +26,7 @@ struct crio_filter {
     char* name;
     int (*filter)(struct crio_stream *stream, void *filter_ctx);
     void *filter_ctx;
+    void (*finalizer)(void *filter_ctx);
     struct crio_filter *next;
 };
 

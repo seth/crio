@@ -55,6 +55,11 @@ static void crio_filter_free(struct crio_filter *cf)
     if (cf) {
         crio_filter_free(cf->next);
         if (cf->name) free(cf->name);
+        if (cf->finalizer && cf->filter_ctx) {
+            cf->finalizer(cf->filter_ctx);
+            cf->filter_ctx = NULL;
+            cf->finalizer = NULL;
+        }
         free(cf);
         cf = NULL;
     }
