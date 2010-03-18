@@ -112,13 +112,17 @@ void Test_filter_has_error(CuTest *tc)
     ctx.value = 4;
     struct crio_stream *stream = crio_stream_make(demo_read_noop, NULL, "noop", 
                                                   &ctx);
-    crio_add_filter(stream, "ferr", filter_with_error, NULL);
+    struct crio_filter *filters[1];
+    filters[0] = crio_filter_make("ferr", filter_with_error, NULL, NULL);
+    crio_set_filters(stream, 1, filters);
+
     int res = crio_next(stream);
     CuAssertIntEquals(tc, CRIO_ERR, res);
     CuAssertStrEquals(tc, "filter_with_error failed with: 4"
                       " [file: noop, record: 1]",
                       crio_errmsg(stream));
     crio_stream_free(stream);
+    crio_filter_free(filters[0]);
 }
 
 void Test_crio_copy_filename(CuTest *tc)
@@ -176,7 +180,10 @@ void Test_one_filter_demo_crio(CuTest *tc)
     memset(line, 0, 256);
     struct crio_stream *stream = crio_stream_make(demo_read, file, "demo.txt", 
                                                   line);
-    crio_add_filter(stream, "nodigits", alpha_filter, NULL);
+    
+    struct crio_filter *filters[1];
+    filters[0]  = crio_filter_make("nodigits", alpha_filter, NULL, NULL);
+    crio_set_filters(stream, 1, filters);
     char *expect[] = {"abc", "def", "ghi", "jkl"};
     int res, i = 0;
     while (CRIO_OK == (res = crio_next(stream))) {
@@ -190,6 +197,7 @@ void Test_one_filter_demo_crio(CuTest *tc)
     CuAssertIntEquals(tc, 4, stream->nfiltered);
     fclose(file);
     crio_stream_free(stream);
+    crio_filter_free(filters[0]);
 }
 
 
@@ -200,8 +208,11 @@ void Test_two_filters_demo(CuTest *tc)
     memset(line, 0, 256);
     struct crio_stream *stream = crio_stream_make(demo_read, file, "demo.txt", 
                                                   line);
-    crio_add_filter(stream, "nodigits", alpha_filter, NULL);
-    crio_add_filter(stream, "has k", has_k_filter, NULL);
+    struct crio_filter *filters[2];
+    filters[0] = crio_filter_make("nodigits", alpha_filter, NULL, NULL);
+    filters[1] = crio_filter_make("has k", has_k_filter, NULL, NULL);
+    crio_set_filters(stream, 2, filters);
+
     CuAssertIntEquals(tc, 2, stream->filter_count);
     char *expect[] = {"jkl"};
     int res, i = 0;
@@ -216,4 +227,6 @@ void Test_two_filters_demo(CuTest *tc)
     CuAssertIntEquals(tc, 1, stream->nfiltered);
     fclose(file);
     crio_stream_free(stream);
+    crio_filter_free(filters[0]);
+    crio_filter_free(filters[1]);
 }

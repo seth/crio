@@ -32,22 +32,6 @@ crio_reset_file(
     void *fh,
     char *filename);
 
-
-/* Add a filter to a stream.  Filters are composed with AND, executed
- * in a LIFO order; if the first filter executed returns 0, no other
- * filters will be run for that record.
- *
- * The contents of 'name' are copied to internal memory.  'filter' is
- * a function pointer taking global context and filter-specific
- * context. Returns a pointer to the stream or NULL if allocation
- * fails. */
-struct crio_stream *
-crio_add_filter(
-    struct crio_stream *stream,
-    const char *name,
-    int (*filter)(struct crio_stream *stream, void *filter_ctx),
-    void *filter_ctx);
-
 /* Create a new crio filter.
  *
  */
@@ -63,6 +47,14 @@ crio_filter_make(
 void
 crio_filter_free(
     struct crio_filter *);
+
+/* Set the filters for a stream.
+*/
+struct crio_stream *
+crio_set_filters(
+    struct crio_stream *stream,
+    int n,
+    struct crio_filter **filters);
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the

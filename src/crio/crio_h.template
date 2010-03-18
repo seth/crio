@@ -21,17 +21,6 @@
  * number of records passing the filters. */
 <%= declare(api, "crio_reset_file") %>
 
-
-/* Add a filter to a stream.  Filters are composed with AND, executed
- * in a LIFO order; if the first filter executed returns 0, no other
- * filters will be run for that record.
- *
- * The contents of 'name' are copied to internal memory.  'filter' is
- * a function pointer taking global context and filter-specific
- * context. Returns a pointer to the stream or NULL if allocation
- * fails. */
-<%= declare(api, "crio_add_filter") %>
-
 /* Create a new crio filter.
  *
  */
@@ -40,6 +29,10 @@
 /* Free a crio filter created using crio_filter_make
  */
 <%= declare(api, "crio_filter_free") %>
+
+/* Set the filters for a stream.
+*/
+<%= declare(api, "crio_set_filters") %>
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the

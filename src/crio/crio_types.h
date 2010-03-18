@@ -16,7 +16,7 @@ struct crio_stream {
     int (*read)(struct crio_stream *stream);
     int nread;
     int nfiltered;
-    struct crio_filter *filters;
+    struct crio_filter **filters;
     int filter_count;
     void *ctx;
     char error_message[CRIO_ERRBUF_SIZE];
@@ -27,7 +27,6 @@ struct crio_filter {
     int (*filter)(struct crio_stream *stream, void *filter_ctx);
     void *filter_ctx;
     void (*finalizer)(void *filter_ctx);
-    struct crio_filter *next;
 };
 
 #endif  /* CRIO_TYPES_H_ */

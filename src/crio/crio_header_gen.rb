@@ -84,19 +84,19 @@ api = [
        },
 
        {
-         :name => "crio_add_filter",
-         :return => "struct crio_stream *",
-         :args => ["struct crio_stream *stream",
-                   "const char *name",
-                   "int (*filter)(struct crio_stream *stream, void *filter_ctx)",
-                   "void *filter_ctx"]
-       },
-
-       {
          :name => "crio_next",
          :return => "int",
          :args => ["struct crio_stream *"]
        },
+
+       {
+         :name => "crio_set_filters",
+         :return => "struct crio_stream *",
+         :args => ["struct crio_stream *stream",
+                   "int n",
+                   "struct crio_filter **filters"]
+       },
+
        {
          :name => "crio_set_errmsg",
          :return => "void",

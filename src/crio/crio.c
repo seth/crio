@@ -51,9 +51,7 @@ crio_stream_make(int (*read)(struct crio_stream *stream),
 
 void crio_filter_free(struct crio_filter *cf)
 {
-    /* recursive free of chained filters */
     if (cf) {
-        crio_filter_free(cf->next);
         if (cf->name) free(cf->name);
         if (cf->finalizer && cf->filter_ctx) {
             cf->finalizer(cf->filter_ctx);
@@ -67,7 +65,6 @@ void crio_filter_free(struct crio_filter *cf)
 
 void crio_stream_free(struct crio_stream *stream)
 {
-    crio_filter_free(stream->filters);
     if (stream->filename) free(stream->filename);
     free(stream);
     stream = NULL;
@@ -104,32 +101,13 @@ crio_filter_make(const char *name,
     cf->filter = filter;
     cf->filter_ctx = filter_ctx;
     cf->finalizer = finalizer;
-    cf->next = NULL;
     return cf;
-}
-
-struct crio_stream *
-crio_add_filter(struct crio_stream *stream,
-                const char *name,
-                int (*filter)(struct crio_stream *stream, void *filter_ctx),
-                void *filter_ctx)
-{
-    struct crio_filter *cf;
-    if (!(cf = malloc(sizeof(struct crio_filter)))) return NULL;
-    if (!(cf->name = calloc(strlen(name) + 1, sizeof(char)))) return NULL;
-    strcpy(cf->name, name);
-    cf->filter = filter;
-    cf->filter_ctx = filter_ctx;
-    cf->next = stream->filters;
-    stream->filters = cf;
-    stream->filter_count += 1;
-    return stream;
 }
 
 struct crio_stream *
 crio_set_filters(struct crio_stream *stream,
                  int n,
-                 struct crio_filter *filters)
+                 struct crio_filter **filters)
 {
     stream->filter_count = n;
     stream->filters = filters;
@@ -142,11 +120,11 @@ int crio_next(struct crio_stream *stream)
     struct crio_filter *cf;
     while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
         i = 0;
-        for (cf = stream->filters; cf; cf = cf->next) {
+        for (i = 0; i < stream->filter_count; i++) {
+            cf = stream->filters[i];
             fres = cf->filter(stream, cf->filter_ctx);
             if (CRIO_FILT_FAIL == fres) break;
-            else if (CRIO_FILT_PASS == fres) i++;
-            else return fres; /* must be error */
+            if (CRIO_FILT_PASS != fres) return fres; /* must be error */
         }
         if (i == stream->filter_count) {
             stream->nfiltered++;

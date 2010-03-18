@@ -31,13 +31,13 @@ INFP(void,
      crio_filter_free,
      (struct crio_filter *));
 
-INFP(struct crio_stream *,
-     crio_add_filter,
-     (struct crio_stream *stream, const char *name, int (*filter)(struct crio_stream *stream, void *filter_ctx), void *filter_ctx));
-
 INFP(int,
      crio_next,
      (struct crio_stream *));
+
+INFP(struct crio_stream *,
+     crio_set_filters,
+     (struct crio_stream *stream, int n, struct crio_filter **filters));
 
 INFP(void,
      crio_set_errmsg,
@@ -75,13 +75,13 @@ void crio_initialize_stubs()
          crio_filter_free,
          (struct crio_filter *));
 
-    MKFP(struct crio_stream *,
-         crio_add_filter,
-         (struct crio_stream *stream, const char *name, int (*filter)(struct crio_stream *stream, void *filter_ctx), void *filter_ctx));
-
     MKFP(int,
          crio_next,
          (struct crio_stream *));
+
+    MKFP(struct crio_stream *,
+         crio_set_filters,
+         (struct crio_stream *stream, int n, struct crio_filter **filters));
 
     MKFP(void,
          crio_set_errmsg,
