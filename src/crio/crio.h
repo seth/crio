@@ -2,6 +2,7 @@
 #define CRIO_H_
 
 #include "crio_types.h"
+#include <stdarg.h>
 
 /* crio_stream_make initializes a new stream.  You must free the
    returned crio_stream pointer when finished using crio_stream_free.
@@ -47,6 +48,21 @@ crio_add_filter(
     int (*filter)(struct crio_stream *stream, void *filter_ctx),
     void *filter_ctx);
 
+/* Create a new crio filter.
+ *
+ */
+struct crio_filter *
+crio_filter_make(
+    const char *name,
+    int (*filter)(struct crio_stream *stream, void *filter_ctx),
+    void *filter_ctx,
+    void (*finalizer)(void *filter_ctx));
+
+/* Free a crio filter created using crio_filter_make
+ */
+void
+crio_filter_free(
+    struct crio_filter *);
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the
@@ -67,6 +83,14 @@ crio_set_errmsg(
     const char *fmt,
     ...);
 
+/* Set error message from a function that recieves '...' args.
+ *
+ */
+void
+crio_vset_errmsg(
+    struct crio_stream *stream,
+    const char *fmt,
+    va_list ap);
 
 /* Return the current error message for a stream. */
 const char *

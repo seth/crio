@@ -49,7 +49,7 @@ crio_stream_make(int (*read)(struct crio_stream *stream),
     return copy_stream_filename(stream, filename);
 }
 
-static void crio_filter_free(struct crio_filter *cf)
+void crio_filter_free(struct crio_filter *cf)
 {
     /* recursive free of chained filters */
     if (cf) {
@@ -91,6 +91,23 @@ crio_reset_file(struct crio_stream *stream,
     return stream;
 }
 
+struct crio_filter *
+crio_filter_make(const char *name,
+                 int (*filter)(struct crio_stream *stream, void *filter_ctx),
+                 void *filter_ctx,
+                 void (*finalizer)(void *))
+{
+    struct crio_filter *cf;
+    if (!(cf = malloc(sizeof(struct crio_filter)))) return NULL;
+    if (!(cf->name = calloc(strlen(name) + 1, sizeof(char)))) return NULL;
+    strcpy(cf->name, name);
+    cf->filter = filter;
+    cf->filter_ctx = filter_ctx;
+    cf->finalizer = finalizer;
+    cf->next = NULL;
+    return cf;
+}
+
 struct crio_stream *
 crio_add_filter(struct crio_stream *stream,
                 const char *name,
@@ -109,6 +126,15 @@ crio_add_filter(struct crio_stream *stream,
     return stream;
 }
 
+struct crio_stream *
+crio_set_filters(struct crio_stream *stream,
+                 int n,
+                 struct crio_filter *filters)
+{
+    stream->filter_count = n;
+    stream->filters = filters;
+    return stream;
+}
 
 int crio_next(struct crio_stream *stream)
 {
@@ -131,13 +157,10 @@ int crio_next(struct crio_stream *stream)
     return res;
 }
 
-void crio_set_errmsg(struct crio_stream *stream, const char *fmt, ...)
+void crio_vset_errmsg(struct crio_stream *stream, const char *fmt, va_list ap)
 {
     int len;
-    va_list(ap);
-    va_start(ap, fmt);
     vsnprintf(stream->error_message, CRIO_ERRBUF_SIZE, fmt, ap);
-    va_end(ap);
     len = strlen(stream->error_message);
     char *fname = stream->filename ? stream->filename : "";
     /* max size of record count is ceil(log10(2^64)) => 20.  Then we
@@ -150,7 +173,29 @@ void crio_set_errmsg(struct crio_stream *stream, const char *fmt, ...)
     }
 }
 
+void crio_set_errmsg(struct crio_stream *stream, const char *fmt, ...)
+{
+    va_list(ap);
+    va_start(ap, fmt);
+    crio_vset_errmsg(stream, fmt, ap);
+    va_end(ap);
+}
+
 const char * crio_errmsg(struct crio_stream *stream)
 {
     return (const char *)stream->error_message;
+}
+
+static struct crio_filter *
+crio_lookup_filter(struct crio_stream *stream, const char *name)
+{
+    int i;
+    struct crio_filter *filt;
+    for (i = 0; i < stream->filter_count; i++) {
+        filt = stream->filters[i];
+        if (0 == strcmp(name, filt->name)) {
+            return filt;
+        }
+    }
+    return NULL;
 }

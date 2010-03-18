@@ -46,8 +46,8 @@ end
 
 api = [
        {
-         :return => "struct crio_stream *",
          :name => "crio_stream_make",
+         :return => "struct crio_stream *",
          :args => ["int (*read)(struct crio_stream *stream)",
                    "void *fh",
                    "char *filename",
@@ -55,22 +55,37 @@ api = [
        },
 
        {
-         :return => "void",
          :name => "crio_stream_free",
+         :return => "void",
          :args => ["struct crio_stream *stream"]
        },
 
        {
-         :return => "struct crio_stream *",
          :name => "crio_reset_file",
+         :return => "struct crio_stream *",
          :args => ["struct crio_stream *stream",
                    "void *fh",
                    "char *filename"]
        },
-       
+
        {
-         :return => "struct crio_stream *",
+         :name => "crio_filter_make",
+         :return => "struct crio_filter *",
+         :args => ["const char *name",
+                   "int (*filter)(struct crio_stream *stream, void *filter_ctx)",
+                   "void *filter_ctx",
+                   "void (*finalizer)(void *filter_ctx)"]
+       },
+
+       {
+         :name => "crio_filter_free",
+         :return => "void",
+         :args => ["struct crio_filter *"]
+       },
+
+       {
          :name => "crio_add_filter",
+         :return => "struct crio_stream *",
          :args => ["struct crio_stream *stream",
                    "const char *name",
                    "int (*filter)(struct crio_stream *stream, void *filter_ctx)",
@@ -78,19 +93,25 @@ api = [
        },
 
        {
-         :return => "int",
          :name => "crio_next",
+         :return => "int",
          :args => ["struct crio_stream *"]
        },
        {
-         :return => "void",
          :name => "crio_set_errmsg",
+         :return => "void",
          :args => ["struct crio_stream *stream", "const char *fmt", "..."]
        },
 
        {
-         :return => "const char *",
+         :name => "crio_vset_errmsg",
+         :return => "void",
+         :args => ["struct crio_stream *stream", "const char *fmt", "va_list ap"]
+       },
+
+       {
          :name => "crio_errmsg",
+         :return => "const char *",
          :args => ["struct crio_stream *stream"]
        }
       ]

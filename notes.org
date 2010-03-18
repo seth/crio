@@ -1,0 +1,16 @@
+* crio development notes
+
+Package code contains a fixed set of possibly parameterized filter
+functions f_1, f_2, ..., f_n.  In preparing for a call to read data
+via a crio stream, the package will create crio filter structs wrapped
+in external pointers using =crio_make_filter_xp=.  The
+=crio_make_filter_xp= takes a name, a filter function pointer (f_k), a
+filter context pointer (encapsulates the parameterization of f_k, and
+a finalizer function pointer that can be used to free the filter
+context.  The return value is an R external pointer SEXP wiht tag set
+to the name value and pointer set to a newly allocated crio filter.
+This external pointer will also have a finalizer registered for it
+that will free the crio filter structure and the filter context data
+(using the provided finalizer).
+
+Package code will then 

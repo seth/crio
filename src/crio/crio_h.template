@@ -2,6 +2,7 @@
 #define CRIO_H_
 
 #include "crio_types.h"
+#include <stdarg.h>
 
 /* crio_stream_make initializes a new stream.  You must free the
    returned crio_stream pointer when finished using crio_stream_free.
@@ -31,6 +32,14 @@
  * fails. */
 <%= declare(api, "crio_add_filter") %>
 
+/* Create a new crio filter.
+ *
+ */
+<%= declare(api, "crio_filter_make") %>
+
+/* Free a crio filter created using crio_filter_make
+ */
+<%= declare(api, "crio_filter_free") %>
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the
@@ -45,6 +54,10 @@
  * additional arguments. */
 <%= declare(api, "crio_set_errmsg") %>
 
+/* Set error message from a function that recieves '...' args.
+ *
+ */
+<%= declare(api, "crio_vset_errmsg") %>
 
 /* Return the current error message for a stream. */
 <%= declare(api, "crio_errmsg") %>
