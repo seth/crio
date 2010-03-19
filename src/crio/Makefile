@@ -1,4 +1,4 @@
-SRC = crio.c
+SRC = crio.c crio_eval.c
 OBJ = $(SRC:%.c=%.o)
 LIBCRIO = libcrio.a
 
