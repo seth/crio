@@ -3,14 +3,39 @@
 Package code contains a fixed set of possibly parameterized filter
 functions f_1, f_2, ..., f_n.  In preparing for a call to read data
 via a crio stream, the package will create crio filter structs wrapped
-in external pointers using =crio_make_filter_xp=.  The
-=crio_make_filter_xp= takes a name, a filter function pointer (f_k), a
-filter context pointer (encapsulates the parameterization of f_k, and
-a finalizer function pointer that can be used to free the filter
-context.  The return value is an R external pointer SEXP wiht tag set
-to the name value and pointer set to a newly allocated crio filter.
-This external pointer will also have a finalizer registered for it
-that will free the crio filter structure and the filter context data
-(using the provided finalizer).
+in external pointers using =crio_make_filter_xp=.  Arguments to 
+=crio_make_filter_xp= are as follows:
 
-Package code will then 
+- a name;
+
+- a filter function pointer (f_k);
+
+- a filter context provided as an SEXP;
+
+The return value is an R external pointer SEXP with tag set to the
+name value and pointer set to a newly allocated crio filter.  The
+external pointer's protection slot is used to protect the filter
+context.  The external pointer will also have a finalizer registered
+for it that will free the crio filter structure when the xp is gc'd.
+
+Package code will then pass an SEXP containing the result of something
+like =quote(f1 & f2 | (!f3 | f4))= along with an environment with keys
+f1, f2, f3, and f4 each mapping to an external pointer as returned by
+=crio_make_filter_xp= representing the filter that the user wishes to
+use.
+
+
+* TODO external pointer API
+** Refactor template code
+** Add function pointer decl to stubs
+* TODO crio AST evaluation
+** R parsed expression => crio AST
+** Modify eval for short-cicuit for AND/OR
+** Build up arg list by appending to tail (correct order)
+** Add fun NOT
+** Add constants for list NIL and funs AND, OR, NOT
+** Memory model
+Consider implementing a simple memory pool for list cells and nodes.
+This could simplify the handling of out of memory situations and also
+improve efficiency by avoiding repeated small calls to malloc when
+evaluating the AST in the read loop.
