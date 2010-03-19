@@ -23,7 +23,7 @@ static void crio_filter_xp_free(SEXP xp)
 }
 
 SEXP crio_make_filter_xp(const char *name,
-                         int (*filter)(struct crio_stream *stream, void *filter_ctx),
+                         int (*filter)(struct crio_stream *, void *),
                          SEXP filter_ctx)
 {
     SEXP xp;
