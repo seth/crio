@@ -2,12 +2,13 @@
 #define CRIO_EVAL_H_
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "crio.h"
 
 enum crio_types {
     CRIO_INT_T,
     CRIO_FILTER_T,
-    CRIO_FUN_T
+    CRIO_FUN_T,
 };
 
 typedef struct _crio_list {
@@ -36,10 +37,42 @@ typedef struct _crio_node {
 
 #define CRIO_CAR(x) (x)->node
 #define CRIO_CDR(x) (x)->next
+#define CRIO_IS_NIL(x) (!CRIO_CAR(x) && !CRIO_CDR(x))
 
 
-CrioList * crio_cons(CrioNode *node, CrioList *list);
+CrioList *crio_cons(CrioNode *node, CrioList *list);
+void crio_list_free(CrioList *list);
+CrioList *crio_list_reverse(CrioList *list);
+
+void crio_print_node(CrioNode *node);
+void crio_print_list(CrioList *list);
 
 
+CrioNode * crio_mknode_int(int v);
+
+CrioNode * crio_mknode_fun(int (*fun)(CrioList *));
+
+CrioNode *
+crio_mknode_filter(struct crio_filter *filter);
+
+CrioNode * crio_mknode_fun_and();
+CrioNode * crio_mknode_fun_or();
+
+CrioList *
+crio_cons(CrioNode *node, CrioList *list);
+
+CrioNode *
+_crio_eval(CrioList *list, struct crio_stream *stream);
+
+
+
+#define CRIO_DEBUG
+
+#ifdef CRIO_DEBUG
+  #define WHERESTR  "[file %s, line %d]: "
+  #define WHEREARG  __FILE__, __LINE__
+  #define DEBUGPRINT2(...) fprintf(stderr, __VA_ARGS__)
+  #define DEBUGPRINT(_fmt, ...)  DEBUGPRINT2(WHERESTR _fmt, WHEREARG, __VA_ARGS__)
+#endif
 
 #endif  /* CRIO_EVAL_H_ */
