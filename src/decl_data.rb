@@ -1,50 +1,82 @@
-#!/usr/bin/env ruby
 
-require 'erb'
+FILES = [
+         {
+           :type => "header",
+           :src => "src/crio/crio_h.template",
+           :dst => "src/crio/crio.h"
+         },
 
-def make_header_decl(p)
-  ans = []
-  ans << p[:return]
-  ans << p[:name] + "("
-  spc = " " * 4
-  ans << p[:args].map { |a| spc + a }.join(",\n")
-  ans[-1] = ans[-1] + ");"
-  ans.join("\n")
-end
+         {
+           :type => "stubs",
+           :src => "src/crio/crio_stubs.template",
+           :dst => "inst/include/crio_stubs.c"
+         },
 
-def make_extern_fp_decl(p)
-  spc = " " * 4
-  ans = ["extern", p[:return], "(*#{p[:name]})(",
-         p[:args].map { |a| spc + a }.join(",\n")]
-  ans[-1] = ans[-1] + ");"
-  ans.join("\n")
-end
+         {
+           :type => "header",
+           :src => "src/crio/crio_h.template",
+           :dst => "inst/include/crio.h"
+         },
 
-def api_for(api, name)
-  api.find { |a| a[:name] == name }
-end
+         {
+           :type => "header",
+           :src => "src/crio_pkg_h.template",
+           :dst => "inst/include/crio_xp.h"
+         },
 
-def init_func_ptr(p)
-  args = p[:args].join(", ")
-  spc = "\n" + (" " * 5)
-  "INFP(#{p[:return]},#{spc}#{p[:name]},#{spc}(#{args}));\n"
-end
+         {
+           :type => "header",
+           :src => "src/crio_pkg_h.template",
+           :dst => "src/crio_pkg.h"
+         }
 
-def set_func_ptr(p)
-  args = p[:args].join(", ")
-  spc = "\n" + (" " * 9)
-  "MKFP(#{p[:return]},#{spc}#{p[:name]},#{spc}(#{args}));\n"
-end
+        ]
 
-def declare_func(api, name)
-  make_header_decl(api_for(api, name))
-end
+API = [
+       {
+         :name => "crio_filter_make_xp",
+         :return => "SEXP",
+         :args =>
+         ["const char *name",
+          "int (*filter)(struct crio_stream *stream, void *filter_ctx)",
+          "SEXP filter_ctx"]
+       },
 
-def declare_fp(api, name)
-  make_extern_fp_decl(api_for(api, name))
-end
+       {
+         :name => "crio_stream_make_xp",
+         :return => "SEXP",
+         :args => ["int (*read)(struct crio_stream *stream)",
+                   "void *fh",
+                   "char *filename",
+                   "void *ctx"]
+       },
+       
+       {
+         :name => "crio_reset_file_xp",
+         :return => "SEXP",
+         :args => ["SEXP xp",
+                   "void *fh",
+                   "char *filename"]
+       },
 
-api = [
+       {
+         :name => "crio_next_xp",
+         :return => "int",
+         :args => ["SEXP xp"]
+       },
+
+       {
+         :name => "crio_set_errmsg_xp",
+         :return => "void",
+         :args => ["SEXP xp", "const char *fmt", "..."]
+       },
+
+       {
+         :name => "crio_errmsg_xp",
+         :return => "const char *",
+         :args => ["SEXP xp"]
+       },
+       
        {
          :name => "crio_stream_make",
          :return => "struct crio_stream *",
@@ -115,27 +147,3 @@ api = [
          :args => ["struct crio_stream *stream"]
        }
       ]
-
-crio_h_template = ERB.new(open("crio_h.template").read)
-crio_stubs_template = ERB.new(open("crio_stubs.template").read, 0, "%<>")
-
-fn = "crio.h"
-alias :declare :declare_func
-puts "writing: #{fn}"
-open(fn, "w") do |f|
-  f.write(crio_h_template.result(binding))
-end
-
-fn = "../../inst/include/crio.h"
-alias :declare :declare_fp
-puts "writing: #{fn}"
-open(fn, "w") do |f|
-  f.write(crio_h_template.result(binding))
-end
-
-fn = "../../inst/include/crio_stubs.c"
-puts "writing: #{fn}"
-open(fn, "w") do |f|
-  f.write(crio_stubs_template.result(binding))
-end
-

@@ -11,7 +11,7 @@
 
 
 /* Declare API function pointers */
-% api.each do |p|
+% @api.each do |p|
 <%= init_func_ptr(p) %>
 
 % end
@@ -19,7 +19,7 @@
 /* call this function inside YourPackage_init */
 void crio_initialize_stubs()
 {
-% api.each do |p|
+% @api.each do |p|
     <%= set_func_ptr(p) %>
 % end
 }

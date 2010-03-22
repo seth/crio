@@ -11,6 +11,30 @@
 
 
 /* Declare API function pointers */
+INFP(SEXP,
+     crio_filter_make_xp,
+     (const char *name, int (*filter)(struct crio_stream *stream, void *filter_ctx), SEXP filter_ctx));
+
+INFP(SEXP,
+     crio_stream_make_xp,
+     (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
+
+INFP(SEXP,
+     crio_reset_file_xp,
+     (SEXP xp, void *fh, char *filename));
+
+INFP(int,
+     crio_next_xp,
+     (SEXP xp));
+
+INFP(void,
+     crio_set_errmsg_xp,
+     (SEXP xp, const char *fmt, ...));
+
+INFP(const char *,
+     crio_errmsg_xp,
+     (SEXP xp));
+
 INFP(struct crio_stream *,
      crio_stream_make,
      (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
@@ -55,6 +79,30 @@ INFP(const char *,
 /* call this function inside YourPackage_init */
 void crio_initialize_stubs()
 {
+    MKFP(SEXP,
+         crio_filter_make_xp,
+         (const char *name, int (*filter)(struct crio_stream *stream, void *filter_ctx), SEXP filter_ctx));
+
+    MKFP(SEXP,
+         crio_stream_make_xp,
+         (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
+
+    MKFP(SEXP,
+         crio_reset_file_xp,
+         (SEXP xp, void *fh, char *filename));
+
+    MKFP(int,
+         crio_next_xp,
+         (SEXP xp));
+
+    MKFP(void,
+         crio_set_errmsg_xp,
+         (SEXP xp, const char *fmt, ...));
+
+    MKFP(const char *,
+         crio_errmsg_xp,
+         (SEXP xp));
+
     MKFP(struct crio_stream *,
          crio_stream_make,
          (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));

@@ -7,37 +7,37 @@
 /* crio_stream_make initializes a new stream.  You must free the
    returned crio_stream pointer when finished using crio_stream_free.
    Returns NULL if allocation fails.  */
-<%= declare(api, "crio_stream_make") %>
+<%= declare("crio_stream_make") %>
 
 
 /* release memory allocated using crio_stream_make.  The stream is not
  * usable afterwards.
  */
-<%= declare(api, "crio_stream_free") %>
+<%= declare("crio_stream_free") %>
 
 
 /* Set a new file handle and name on an existing stream object.  This
  * resets the counters used to keep track of number of reads and
  * number of records passing the filters. */
-<%= declare(api, "crio_reset_file") %>
+<%= declare("crio_reset_file") %>
 
 /* Create a new crio filter.
  *
  */
-<%= declare(api, "crio_filter_make") %>
+<%= declare("crio_filter_make") %>
 
 /* Free a crio filter created using crio_filter_make
  */
-<%= declare(api, "crio_filter_free") %>
+<%= declare("crio_filter_free") %>
 
 /* Set the filters for a stream.
 */
-<%= declare(api, "crio_set_filters") %>
+<%= declare("crio_set_filters") %>
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the
    user-supplied filters is found. */
-<%= declare(api, "crio_next") %>
+<%= declare("crio_next") %>
 
 
 /* Set the error message on the specified stream.  The filename and
@@ -45,14 +45,14 @@
  * Error messages including context must be less than 1023 characters.
  * The fmt argument is treated as a format via sprintf along with any
  * additional arguments. */
-<%= declare(api, "crio_set_errmsg") %>
+<%= declare("crio_set_errmsg") %>
 
 /* Set error message from a function that recieves '...' args.
  *
  */
-<%= declare(api, "crio_vset_errmsg") %>
+<%= declare("crio_vset_errmsg") %>
 
 /* Return the current error message for a stream. */
-<%= declare(api, "crio_errmsg") %>
+<%= declare("crio_errmsg") %>
 
 #endif  /* CRIO_H_ */

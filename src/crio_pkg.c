@@ -6,13 +6,24 @@
 
 void R_init_crio(DllInfo *info)
 {
+    REG_FUNC(crio_stream_make_xp);
+    REG_FUNC(crio_reset_file_xp);
+    REG_FUNC(crio_next_xp);
+    REG_FUNC(crio_set_errmsg_xp);
+    REG_FUNC(crio_errmsg_xp);
+    REG_FUNC(crio_filter_make_xp);
+
     REG_FUNC(crio_stream_make);
     REG_FUNC(crio_stream_free);
     REG_FUNC(crio_reset_file);
-    REG_FUNC(crio_add_filter);
     REG_FUNC(crio_next);
     REG_FUNC(crio_set_errmsg);
+    REG_FUNC(crio_vset_errmsg);
     REG_FUNC(crio_errmsg);
+
+    REG_FUNC(crio_filter_make);
+    REG_FUNC(crio_filter_free);
+    REG_FUNC(crio_set_filters);
 }
 
 static void crio_filter_xp_free(SEXP xp)
@@ -22,7 +33,7 @@ static void crio_filter_xp_free(SEXP xp)
     R_ClearExternalPtr(xp);
 }
 
-SEXP crio_make_filter_xp(const char *name,
+SEXP crio_filter_make_xp(const char *name,
                          int (*filter)(struct crio_stream *, void *),
                          SEXP filter_ctx)
 {
@@ -41,7 +52,7 @@ static void crio_stream_xp_free(SEXP xp)
     R_ClearExternalPtr(xp);
 }
 
-SEXP crio_make_stream_xp(int (*read)(struct crio_stream *stream),
+SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
                          void *fh,
                          char *filename,
                          void *ctx)
