@@ -1,9 +1,9 @@
-my_eval <- function(expr)
+dummy_filter <- function(s, ctx)
 {
-    .Call(crio_eval, expr)
+    .Call(make_dummy_filter, s, ctx)
 }
 
-t1 <- function()
+build_ast <- function(expr, rho)
 {
-    my_eval(quote(a))
+    invisible(.Call(crio_build_ast, expr, rho))
 }

@@ -1,3 +1,26 @@
+Version 0.0.4
+
+- New external pointer based API.  This allows crio stream and filter
+  objects to be easily wrapped in R external pointer objects.
+  Finalizers are registered by the API to ease memory management.  The
+  new API has the suffice *_xp.  To use it, include "crio_xp.h" in
+  your code.
+
+- Crio now has its own simple abstract syntax tree made up of CrioNode
+  and CrioList.  Crio can evaluate these simple trees and convert R
+  expressions into the crio native AST.  This will allow users to
+  specify logical combinations of filters.
+
+Version 0.0.3
+
+- crio_set_errmsg now provides an sprintf-style interface
+
+- Some refinement to code generation
+
+Version 0.0.2
+
+- Add template-based code generation for header and stubs
+
 Version 0.0.1
 
 - Happy Birthday

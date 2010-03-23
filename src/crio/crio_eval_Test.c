@@ -10,41 +10,6 @@ struct demo_int_ctx {
     int file_index;
 };
 
-static int demo_read(struct crio_stream *stream)
-{
-    FILE *file = (FILE *)stream->file;
-    char *buf = (char *)stream->ctx;
-    int c = fscanf(file, "%s", buf);
-    if (c == 1) return CRIO_OK;
-    if (c == -1) return CRIO_EOF;
-    return CRIO_ERR;
-}
-
-static int demo_read_noop(struct crio_stream *stream)
-{
-    return CRIO_OK;
-}
-
-static int demo_read_int(struct crio_stream *stream)
-{
-    int res = CRIO_EOF;
-    struct demo_int_ctx *ctx = (struct demo_int_ctx *)stream->ctx;
-    char *data[] = {"123", "foo", "2", "3", "bar"};
-    if (ctx->file_index < 5) {
-        char *endptr;
-        ctx->value = (int)strtol(data[ctx->file_index], &endptr, 10);
-        if (endptr == data[ctx->file_index]) {
-            crio_set_errmsg(stream, "demo_read_int: can't parse int from '%s'",
-                            data[ctx->file_index]);
-            res = CRIO_ERR;
-        } else {
-            res = CRIO_OK;
-        }
-        ctx->file_index++;
-    }
-    return res;
-}
-
 static int alpha_filter(struct crio_stream *stream, void *fctx)
 {
     char *buf = (char *)stream->ctx;
@@ -63,13 +28,6 @@ static int has_k_filter(struct crio_stream *stream, void *fctx)
         if (buf[0] == 'k') res = CRIO_FILT_PASS;
     }
     return res;
-}
-
-static int filter_with_error(struct crio_stream *stream, void *fctx)
-{
-    struct demo_int_ctx *ctx = (struct demo_int_ctx *)stream->ctx;
-    crio_set_errmsg(stream, "filter_with_error failed with: %d", ctx->value);
-    return CRIO_ERR;
 }
 
 static int op_fun(CrioList *list) {
@@ -257,6 +215,20 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
     crio_list_free(list);
+
+    /* (or (and has_k no_digits) 1) */
+    /* this tests an AST where CAR(s) is itself a list */
+    list = crio_cons(fun_and,
+                     crio_cons(filtK_node,
+                               crio_cons(filtA_node, NULL)));
+    list = crio_cons(fun_or, 
+                     crio_cons(crio_mknode_list(list),
+                               crio_cons(n1, NULL)));
+    ans = _crio_eval(list, stream);
+    CuAssertTrue(tc, IS_CRIO_INT_T(ans));
+    CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
+    crio_list_free(list);
+
 }
 
 

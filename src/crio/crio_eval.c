@@ -1,5 +1,9 @@
 #include "crio_eval.h"
+#include <string.h>
+#include <stdio.h>
 
+static int crio_fun_and(CrioList *args);
+static int crio_fun_or(CrioList *args);
 
 char *crio_type_names[3] = {"CRIO_INT_T",
                             "CRIO_FILTER_T",
@@ -10,23 +14,34 @@ CrioList *LIST_NIL = &_LIST_NIL;
 
 void crio_print_node(CrioNode *node)
 {
-    uintptr_t v = 0;
+    char name[50];
+    char buf[80];
+    name[0] = 0;
 
     switch (CRIO_TYPE(node)) {
     case CRIO_INT_T:
-        v = (uintptr_t)CRIO_VALUE(node);
+        snprintf(buf, sizeof(buf), "[INT (%d)]", CRIO_VALUE(node));
         break;
     case CRIO_FUN_T:
-        v = (uintptr_t)CRIO_FUN(node);
+        if (CRIO_FUN(node) == &crio_fun_and)
+            strncpy(name, "&", sizeof(name));
+        else if (CRIO_FUN(node) == &crio_fun_or)
+            strncpy(name, "|", sizeof(name));
+        snprintf(buf, sizeof(buf), "[FUN (%s) <%p>]", name, CRIO_FUN(node));
         break;
     case CRIO_FILTER_T:
-        v = (uintptr_t)CRIO_FILTER(node);
+        strncpy(name, CRIO_FILTER(node)->name, sizeof(name));
+        snprintf(buf, sizeof(buf), "[FILTER (%s) <%p>]",
+                 CRIO_FILTER(node)->name, CRIO_FILTER(node));
+        break;
+    case CRIO_LIST_T:
+        return crio_print_list(CRIO_LIST(node));
         break;
     default:
-        v = 99999;                /* indicate bogus type */
+        snprintf(buf, sizeof(buf), "[unknown: %d]", CRIO_TYPE(node));
         break;
     }
-    printf("[%s: %lu]", crio_type_names[CRIO_TYPE(node)], v);
+    printf("%s", buf);
 }
 
 void crio_print_list(CrioList *list)
@@ -72,6 +87,16 @@ crio_mknode_filter(struct crio_filter *filter)
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_FILTER_T;
     CRIO_FILTER(node) = filter;
+    return node;
+}
+
+CrioNode *
+crio_mknode_list(CrioList *list)
+{
+    CrioNode *node = malloc(sizeof(CrioNode));
+    if (!node) return NULL;
+    CRIO_TYPE(node) = CRIO_LIST_T;
+    CRIO_LIST(node) = list;
     return node;
 }
 
@@ -216,6 +241,9 @@ _crio_eval(CrioList *list, struct crio_stream *stream)
         return crio_eval_fun(v, args);
     case CRIO_FILTER_T:
         return crio_eval_filter(v, stream);
+    case CRIO_LIST_T:
+        return _crio_eval(CRIO_LIST(v), stream);
     }
+
     return NULL;                /* should not happen */
 }
