@@ -1,0 +1,45 @@
+
+R version 2.10.1 (2009-12-14)
+Copyright (C) 2009 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library("crio")
+> 
+> e <- new.env(parent=emptyenv(), hash = TRUE)
+> e[["a"]] <- dummy_filter("aa", 1)
+> e[["b"]] <- dummy_filter("bb", 2)
+> e[["c"]] <- dummy_filter("cc", 3)
+> e[["d"]] <- dummy_filter("dd", 4)
+> 
+> build_ast(quote(a), e)
+([FILTER (aa) <0x100566450>])
+> build_ast(quote(a & b), e)
+([FUN (&) <0x1004e5c00>], [FILTER (aa) <0x100566450>], [FILTER (bb) <0x100569ef0>])
+> build_ast(quote(a & b | c), e)
+([FUN (|) <0x1004e5c40>], ([FUN (&) <0x1004e5c00>], [FILTER (aa) <0x100566450>], [FILTER (bb) <0x100569ef0>])
+, [FILTER (cc) <0x100559300>])
+> build_ast(quote((a | c) & b), e)
+([FUN (&) <0x1004e5c00>], ([FUN (|) <0x1004e5c40>], [FILTER (aa) <0x100566450>], [FILTER (cc) <0x100559300>])
+, [FILTER (bb) <0x100569ef0>])
+> build_ast(quote((a | c) & (b | a)), e)
+([FUN (&) <0x1004e5c00>], ([FUN (|) <0x1004e5c40>], [FILTER (aa) <0x100566450>], [FILTER (cc) <0x100559300>])
+, ([FUN (|) <0x1004e5c40>], [FILTER (bb) <0x100569ef0>], [FILTER (aa) <0x100566450>])
+)
+> build_ast(quote((a | (b & c)) & (d)), e)
+([FUN (&) <0x1004e5c00>], ([FUN (|) <0x1004e5c40>], [FILTER (aa) <0x100566450>], ([FUN (&) <0x1004e5c00>], [FILTER (bb) <0x100569ef0>], [FILTER (cc) <0x100559300>])
+)
+, ([FILTER (dd) <0x1005406f0>])
+)
+> 

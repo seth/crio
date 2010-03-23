@@ -59,6 +59,9 @@ static CrioNode * _sym2CrioNode(SEXP s, SEXP rho)
     return node;
 }
 
+/* remove this to turn debugging ON */
+#define DEBUGPRINT(x, y)
+
 /* Return a CrioNode of type CRIO_LIST_T */
 CrioNode *
 _crio_R_to_ast(SEXP e, SEXP rho)
