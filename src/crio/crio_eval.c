@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 
-static int crio_fun_and(CrioList *args);
-static int crio_fun_or(CrioList *args);
+static int crio_fun_and(CrioList *args, struct crio_stream *stream);
+static int crio_fun_or(CrioList *args, struct crio_stream *stream);
 
 char *crio_type_names[3] = {"CRIO_INT_T",
                             "CRIO_FILTER_T",
@@ -71,7 +71,7 @@ crio_mknode_int(int v)
 }
 
 CrioNode *
-crio_mknode_fun(int (*fun)(CrioList *))
+crio_mknode_fun(int (*fun)(CrioList *, struct crio_stream *))
 {
     CrioNode *node = malloc(sizeof(CrioNode));
     if (!node) return NULL;
@@ -164,9 +164,9 @@ crio_eval_filter(CrioNode *e,
 }
 
 CrioNode *
-crio_eval_fun(CrioNode *e, CrioList *args)
+crio_eval_fun(CrioNode *e, CrioList *args, struct crio_stream *stream)
 {
-    int res = CRIO_FUN(e)(args);
+    int res = CRIO_FUN(e)(args, stream);
     CrioNode *node = malloc(sizeof(CrioNode));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
@@ -174,7 +174,9 @@ crio_eval_fun(CrioNode *e, CrioList *args)
     return node;
 }
 
-static int crio_fun_and(CrioList *args)
+/* FIXME: eval order for _and and _or is backwards */
+
+static int crio_fun_and(CrioList *args, struct crio_stream *stream)
 {
     /* for now, assume args are already evaluated
        and are valid CRIO_INT_T nodes.
@@ -184,6 +186,8 @@ static int crio_fun_and(CrioList *args)
     int ans = 1;
     while (!CRIO_IS_NIL(a)) {
         n = CRIO_CAR(a);
+        if (!IS_CRIO_INT_T(n))
+            n = _crio_eval(crio_cons(n, NULL), stream);
         ans = ans && CRIO_VALUE(n);
         if (!ans) break;
         a = CRIO_CDR(a);
@@ -191,7 +195,7 @@ static int crio_fun_and(CrioList *args)
     return ans;
 }
 
-static int crio_fun_or(CrioList *args)
+static int crio_fun_or(CrioList *args, struct crio_stream *stream)
 {
     /* for now, assume args are already evaluated
        and are valid CRIO_INT_T nodes.
@@ -201,6 +205,8 @@ static int crio_fun_or(CrioList *args)
     int ans = 0;
     while (!CRIO_IS_NIL(a)) {
         n = CRIO_CAR(a);
+        if (!IS_CRIO_INT_T(n))
+            n = _crio_eval(crio_cons(n, NULL), stream);
         ans = ans || CRIO_VALUE(n);
         if (ans) break;
         a = CRIO_CDR(a);
@@ -218,7 +224,6 @@ CrioNode * crio_mknode_fun_or()
     return crio_mknode_fun(crio_fun_or);
 }
 
-
 CrioNode *
 _crio_eval(CrioList *list, struct crio_stream *stream)
 {
@@ -233,12 +238,16 @@ _crio_eval(CrioList *list, struct crio_stream *stream)
     case CRIO_FUN_T:
         args = NULL;
         args0 = CRIO_CDR(e);
-        while (!CRIO_IS_NIL(args0)) {
-            CrioNode *a = _crio_eval(args0, stream);
-            args = crio_cons(a, args);
-            args0 = CRIO_CDR(args0);
+        if (1) {                /* FIXME: only delay eval for some funcs? */
+            args = args0;
+        } else {
+            while (!CRIO_IS_NIL(args0)) {
+                CrioNode *a = _crio_eval(args0, stream);
+                args = crio_cons(a, args);
+                args0 = CRIO_CDR(args0);
+            }
         }
-        return crio_eval_fun(v, args);
+        return crio_eval_fun(v, args, stream);
     case CRIO_FILTER_T:
         return crio_eval_filter(v, stream);
     case CRIO_LIST_T:

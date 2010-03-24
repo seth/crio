@@ -26,6 +26,7 @@ static int strstr_filter(struct crio_stream *stream, void *fctx)
 {
     char *buf = (char *)stream->ctx;
     const char *s = CHAR(STRING_ELT((SEXP)fctx, 0));
+    DEBUGPRINT("strstr: %s\n", s);
     char *found = strstr(buf, s);
     return found ? CRIO_FILT_PASS : CRIO_FILT_FAIL;
 }
