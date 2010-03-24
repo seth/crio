@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
@@ -7,7 +8,6 @@
 #include "crio/crio.h"
 #include "crio/crio_eval.h"
 
-#include <ctype.h>
 
 /* findVarInFrame */
 
@@ -20,6 +20,26 @@ static int alpha_filter(struct crio_stream *stream, void *fctx)
         if (isdigit(buf[0])) return CRIO_FILT_FAIL;
     }
     return CRIO_FILT_PASS;
+}
+
+static int strstr_filter(struct crio_stream *stream, void *fctx)
+{
+    char *buf = (char *)stream->ctx;
+    const char *s = CHAR(STRING_ELT((SEXP)fctx, 0));
+    char *found = strstr(buf, s);
+    return found ? CRIO_FILT_PASS : CRIO_FILT_FAIL;
+}
+
+SEXP make_strstr_filter(SEXP ctx)
+{
+    const char fmt[] = "strstr_filter(\"%s\")";
+    const char *s = CHAR(STRING_ELT(ctx, 0));
+    int n = strlen(s) + strlen(fmt) + 1;
+    char *buf = R_alloc(n, sizeof(char));
+    snprintf(buf, n, fmt, s);
+    return crio_filter_make_xp(buf,
+                               strstr_filter,
+                               ctx);
 }
 
 SEXP make_dummy_filter(SEXP name, SEXP ctx)
@@ -106,4 +126,13 @@ SEXP crio_build_ast(SEXP expr, SEXP rho)
     CrioList *list = CRIO_LIST(_crio_R_to_ast(expr, rho));
     crio_print_list(list);
     return ScalarLogical(1);
+}
+
+SEXP crio_build_and_eval_ast(SEXP expr, SEXP rho, SEXP _ctx)
+{
+    CrioList *list = CRIO_LIST(_crio_R_to_ast(expr, rho));
+    void *ctx = (void *)CHAR(STRING_ELT(_ctx, 0));
+    struct crio_stream *stream = crio_stream_make(NULL, NULL,
+                                                  "test stream", ctx);
+    return ScalarInteger(CRIO_VALUE(_crio_eval(list, stream)));
 }

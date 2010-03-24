@@ -25,15 +25,17 @@ f1, f2, f3, and f4 each mapping to an external pointer as returned by
 use.
 
 
-* TODO external pointer API
+* DONE external pointer API
+  CLOSED: [2010-03-23 Tue 15:05]
 ** Refactor template code
 ** Add function pointer decl to stubs
 * TODO crio AST evaluation
-** R parsed expression => crio AST
+** [X] R parsed expression => crio AST
 ** Modify eval for short-cicuit for AND/OR
 ** Build up arg list by appending to tail (correct order)
 ** Add fun NOT
 ** Add constants for list NIL and funs AND, OR, NOT
+** Cleanup empty list concept and cons'ing w/ NULL
 ** Memory model
 Consider implementing a simple memory pool for list cells and nodes.
 This could simplify the handling of out of memory situations and also

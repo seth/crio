@@ -1,2 +1,4 @@
-useDynLib("crio", "crio_build_ast", "make_dummy_filter")
+useDynLib("crio",
+          "crio_build_ast", "make_dummy_filter", "make_strstr_filter",
+          "crio_build_and_eval_ast")
 exportPattern("^[^\\.]")
