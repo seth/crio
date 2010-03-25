@@ -10,17 +10,11 @@ copy_stream_filename(struct crio_stream *stream,
                      const char *filename)
 {
     if (stream) {
-        char *fname = NULL;
+        stream->filename = NULL;
         if (filename) {
-            int len = strlen(filename) + 1;
-            fname = malloc(sizeof(char) * len);
-            if (!fname) {
-                crio_stream_free(stream);
-                return NULL;
-            }
-            memcpy(fname, filename, len);
+            stream->filename = strdup(filename);
+            if (!stream->filename) return NULL;
         }
-        stream->filename = fname;
     }
     return stream;
 }
@@ -77,9 +71,8 @@ crio_reset_file(struct crio_stream *stream,
                 void *fh,
                 char *filename)
 {
-    free(stream->filename);
-    stream->filename = NULL;
     stream->file = fh;
+    if (stream->filename) free(stream->filename);
     /* returns NULL if allocation fails */
     stream = copy_stream_filename(stream, filename);
     if (stream) {
