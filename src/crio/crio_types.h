@@ -18,6 +18,7 @@ struct crio_stream {
     int nfiltered;
     struct crio_filter **filters;
     int filter_count;
+    void *private;
     void *ctx;
     char error_message[CRIO_ERRBUF_SIZE];
 };

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "crio_eval.h"
 
 static struct crio_stream *
 copy_stream_filename(struct crio_stream *stream,
@@ -45,6 +46,7 @@ crio_stream_make(int (*read)(struct crio_stream *stream),
         stream->filter_count = 0;
         stream->nfiltered = 0;
         stream->nread = 0;
+        stream->private = NULL;
     }
     return copy_stream_filename(stream, filename);
 }
@@ -114,10 +116,28 @@ crio_set_filters(struct crio_stream *stream,
     return stream;
 }
 
+int crio_next2(struct crio_stream *stream)
+{
+    int res, fres;
+    CrioNode *filter_ast_node = (CrioNode *)stream->private;
+    CrioList *filter_ast = CRIO_LIST(filter_ast_node);
+    while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
+        CrioNode *filter_result = _crio_eval(filter_ast, stream);
+        fres = CRIO_VALUE(filter_result);
+        free(filter_result);
+        /* filter pass or error */
+        if (CRIO_FILT_PASS == fres || CRIO_FILT_FAIL != fres) break;
+    }
+    stream->nfiltered++;
+    if (res == CRIO_EOF) stream->nread--;
+    return res;
+}
+
 int crio_next(struct crio_stream *stream)
 {
     int res, i, fres;
     struct crio_filter *cf;
+    if (stream->private) return crio_next2(stream);
     while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
         i = 0;
         for (i = 0; i < stream->filter_count; i++) {

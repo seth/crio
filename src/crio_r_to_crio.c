@@ -136,3 +136,43 @@ SEXP crio_build_and_eval_ast(SEXP expr, SEXP rho, SEXP _ctx)
                                                   "test stream", ctx);
     return ScalarInteger(CRIO_VALUE(_crio_eval(list, stream)));
 }
+
+static int line_reader(struct crio_stream *stream)
+{
+    FILE *file = (FILE *)stream->file;
+    char *buf = (char *)stream->ctx;
+    int c = fscanf(file, "%s", buf);
+    if (c == 1) return CRIO_OK;
+    if (c == -1) return CRIO_EOF;
+    return CRIO_ERR;
+}
+
+SEXP crio_filter_file(SEXP _fname, SEXP expr, SEXP rho)
+{
+    struct crio_stream *stream;
+    int i = 0, ans_len = 256, res;
+    PROTECT_INDEX pidx;
+    SEXP ans, xp;
+    const char *fname = CHAR(STRING_ELT(_fname, 0));
+    FILE *fh = fopen(fname, "r");
+    char *buf = R_alloc(256, sizeof(char));
+    memset(buf, 0, 256);
+    PROTECT(xp = crio_stream_make_xp(line_reader, fh, fname, (void *)buf));
+    /* FIXME */
+    stream = (struct crio_stream *)R_ExternalPtrAddr(xp);
+    stream->private = (void *)_crio_R_to_ast(expr, rho);
+    /* /FIXME */
+    PROTECT_WITH_INDEX(ans = Rf_allocVector(STRSXP, ans_len), &pidx);
+    while (CRIO_OK == (res = crio_next_xp(xp))) {
+        if (i == ans_len) {
+            ans_len *= 2;
+            REPROTECT(ans = lengthgets(ans, ans_len), pidx);
+        }
+        SET_STRING_ELT(ans, i, mkChar(buf));
+        i++;
+    }
+    REPROTECT(ans = lengthgets(ans, i), pidx);
+    UNPROTECT(2);
+    fclose(fh);
+    return ans;
+}
