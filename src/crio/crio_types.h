@@ -10,15 +10,15 @@
 
 #define CRIO_ERRBUF_SIZE 1024
 
+typedef struct _crio_node * CrioNode;
+
 struct crio_stream {
     void *file;
     char *filename;
     int (*read)(struct crio_stream *stream);
     int nread;
     int nfiltered;
-    struct crio_filter **filters;
-    int filter_count;
-    void *private;
+    struct _crio_node *filter;
     void *ctx;
     char error_message[CRIO_ERRBUF_SIZE];
 };

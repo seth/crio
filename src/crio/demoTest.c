@@ -4,6 +4,7 @@
 #include <string.h>
 #include "CuTest.h"
 #include "crio.h"
+#include "crio_eval.h"
 
 struct demo_int_ctx {
     int value;
@@ -80,7 +81,7 @@ void Test_demo_crio_err(CuTest *tc)
     ctx.file_index = 0;
 
     struct crio_stream *stream = crio_stream_make(demo_read_int, NULL,
-                                                  "dri", &ctx);
+                                                  "dri", &ctx, NULL);
     res = crio_next(stream);
     CuAssertIntEquals(tc, CRIO_OK, res);
     CuAssertIntEquals(tc, 123, ctx.value);
@@ -110,19 +111,17 @@ void Test_filter_has_error(CuTest *tc)
 {
     struct demo_int_ctx ctx;
     ctx.value = 4;
+    CrioNode filter = crio_combine_filters(1, crio_filter_make("ferr",
+                                                               filter_with_error,
+                                                               NULL, NULL));
     struct crio_stream *stream = crio_stream_make(demo_read_noop, NULL, "noop", 
-                                                  &ctx);
-    struct crio_filter *filters[1];
-    filters[0] = crio_filter_make("ferr", filter_with_error, NULL, NULL);
-    crio_set_filters(stream, 1, filters);
-
+                                                  &ctx, filter);
     int res = crio_next(stream);
     CuAssertIntEquals(tc, CRIO_ERR, res);
     CuAssertStrEquals(tc, "filter_with_error failed with: 4"
                       " [file: noop, record: 1]",
                       crio_errmsg(stream));
     crio_stream_free(stream);
-    crio_filter_free(filters[0]);
 }
 
 void Test_crio_copy_filename(CuTest *tc)
@@ -130,7 +129,7 @@ void Test_crio_copy_filename(CuTest *tc)
     char *fname = malloc(sizeof(char) * 9);
     strcpy(fname, "demo.txt");
     struct crio_stream *stream = crio_stream_make(demo_read, NULL,
-                                                  fname, NULL);
+                                                  fname, NULL, NULL);
     free(fname);
     fname = NULL;
     CuAssertStrEquals(tc, "demo.txt", stream->filename);
@@ -140,7 +139,7 @@ void Test_crio_copy_filename(CuTest *tc)
 void Test_crio_reset_file(CuTest *tc)
 {
     struct crio_stream *stream = crio_stream_make(demo_read, NULL,
-                                                  "demo.txt", NULL);
+                                                  "demo.txt", NULL, NULL);
     stream->nread = 10;
     stream->nfiltered = 5;
     stream = crio_reset_file(stream, NULL, "second.txt");
@@ -156,7 +155,7 @@ void Test_no_filter_demo_crio(CuTest *tc)
     char line[256];
     memset(line, 0, 256);
     struct crio_stream *stream = crio_stream_make(demo_read, file, "demo.txt", 
-                                                  line);
+                                                  line, NULL);
     char *expect[] = {"abc", "def", "ab3fg", "123", "456", "4asdfds",
                       "ghi", "k4", "jkl"};
     int res, i = 0;
@@ -178,12 +177,12 @@ void Test_one_filter_demo_crio(CuTest *tc)
     FILE *file = fopen("demo.txt", "r");
     char line[256];
     memset(line, 0, 256);
+    CrioNode filter = crio_combine_filters(1, 
+                                           crio_filter_make("nodigits",
+                                                            alpha_filter,
+                                                            NULL, NULL));
     struct crio_stream *stream = crio_stream_make(demo_read, file, "demo.txt", 
-                                                  line);
-    
-    struct crio_filter *filters[1];
-    filters[0]  = crio_filter_make("nodigits", alpha_filter, NULL, NULL);
-    crio_set_filters(stream, 1, filters);
+                                                  line, filter);
     char *expect[] = {"abc", "def", "ghi", "jkl"};
     int res, i = 0;
     while (CRIO_OK == (res = crio_next(stream))) {
@@ -197,7 +196,6 @@ void Test_one_filter_demo_crio(CuTest *tc)
     CuAssertIntEquals(tc, 4, stream->nfiltered);
     fclose(file);
     crio_stream_free(stream);
-    crio_filter_free(filters[0]);
 }
 
 
@@ -206,14 +204,15 @@ void Test_two_filters_demo(CuTest *tc)
     FILE *file = fopen("demo.txt", "r");
     char line[256];
     memset(line, 0, 256);
+    CrioNode filter = crio_combine_filters(2,
+                                           crio_filter_make("nodigits",
+                                                            alpha_filter,
+                                                            NULL, NULL),
+                                           crio_filter_make("has k",
+                                                            has_k_filter,
+                                                            NULL, NULL));
     struct crio_stream *stream = crio_stream_make(demo_read, file, "demo.txt", 
-                                                  line);
-    struct crio_filter *filters[2];
-    filters[0] = crio_filter_make("nodigits", alpha_filter, NULL, NULL);
-    filters[1] = crio_filter_make("has k", has_k_filter, NULL, NULL);
-    crio_set_filters(stream, 2, filters);
-
-    CuAssertIntEquals(tc, 2, stream->filter_count);
+                                                  line, filter);
     char *expect[] = {"jkl"};
     int res, i = 0;
     while (CRIO_OK == (res = crio_next(stream))) {
@@ -227,6 +226,4 @@ void Test_two_filters_demo(CuTest *tc)
     CuAssertIntEquals(tc, 1, stream->nfiltered);
     fclose(file);
     crio_stream_free(stream);
-    crio_filter_free(filters[0]);
-    crio_filter_free(filters[1]);
 }

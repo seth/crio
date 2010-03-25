@@ -17,7 +17,7 @@ INFP(SEXP,
 
 INFP(SEXP,
      crio_stream_make_xp,
-     (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
+     (int (*read)(struct crio_stream *stream), void *fh, const char *filename, void *ctx, CrioNode filter));
 
 INFP(SEXP,
      crio_reset_file_xp,
@@ -37,7 +37,7 @@ INFP(const char *,
 
 INFP(struct crio_stream *,
      crio_stream_make,
-     (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
+     (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx, CrioNode filter));
 
 INFP(void,
      crio_stream_free,
@@ -55,13 +55,13 @@ INFP(void,
      crio_filter_free,
      (struct crio_filter *));
 
+INFP(CrioNode,
+     crio_combine_filters,
+     (int n, ...));
+
 INFP(int,
      crio_next,
      (struct crio_stream *));
-
-INFP(struct crio_stream *,
-     crio_set_filters,
-     (struct crio_stream *stream, int n, struct crio_filter **filters));
 
 INFP(void,
      crio_set_errmsg,
@@ -85,7 +85,7 @@ void crio_initialize_stubs()
 
     MKFP(SEXP,
          crio_stream_make_xp,
-         (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
+         (int (*read)(struct crio_stream *stream), void *fh, const char *filename, void *ctx, CrioNode filter));
 
     MKFP(SEXP,
          crio_reset_file_xp,
@@ -105,7 +105,7 @@ void crio_initialize_stubs()
 
     MKFP(struct crio_stream *,
          crio_stream_make,
-         (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx));
+         (int (*read)(struct crio_stream *stream), void *fh, char *filename, void *ctx, CrioNode filter));
 
     MKFP(void,
          crio_stream_free,
@@ -123,13 +123,13 @@ void crio_initialize_stubs()
          crio_filter_free,
          (struct crio_filter *));
 
+    MKFP(CrioNode,
+         crio_combine_filters,
+         (int n, ...));
+
     MKFP(int,
          crio_next,
          (struct crio_stream *));
-
-    MKFP(struct crio_stream *,
-         crio_set_filters,
-         (struct crio_stream *stream, int n, struct crio_filter **filters));
 
     MKFP(void,
          crio_set_errmsg,

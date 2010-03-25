@@ -17,7 +17,7 @@ typedef struct _crio_list {
     struct _crio_list *next;
 } CrioList;
 
-typedef struct _crio_node {
+struct _crio_node {
     enum crio_types type;
     union {
         struct crio_filter *filter;
@@ -25,8 +25,7 @@ typedef struct _crio_node {
         int (*fun)(struct _crio_list *);
         CrioList *list;
     } value;
-} CrioNode;
-
+};
 
 #define CRIO_TYPE(x) (x)->type
 #define IS_CRIO_INT_T(x) CRIO_TYPE(x) == CRIO_INT_T
@@ -43,32 +42,31 @@ typedef struct _crio_node {
 #define CRIO_CDR(x) (x)->next
 #define CRIO_IS_NIL(x) (!CRIO_CAR(x) && !CRIO_CDR(x))
 
-
-CrioList *crio_cons(CrioNode *node, CrioList *list);
+CrioList *crio_cons(CrioNode node, CrioList *list);
 void crio_list_free(CrioList *list);
 CrioList *crio_list_reverse(CrioList *list);
 
-void crio_print_node(CrioNode *node);
+void crio_print_node(CrioNode node);
 void crio_print_list(CrioList *list);
 
 
-CrioNode * crio_mknode_int(int v);
+CrioNode crio_mknode_int(int v);
 
-CrioNode * crio_mknode_fun(int (*fun)(CrioList *));
+CrioNode crio_mknode_fun(int (*fun)(CrioList *));
 
-CrioNode *
+CrioNode
 crio_mknode_filter(struct crio_filter *filter);
 
-CrioNode *
+CrioNode
 crio_mknode_list(CrioList *list);
 
-CrioNode * crio_mknode_fun_and();
-CrioNode * crio_mknode_fun_or();
+CrioNode crio_mknode_fun_and();
+CrioNode crio_mknode_fun_or();
 
 CrioList *
-crio_cons(CrioNode *node, CrioList *list);
+crio_cons(CrioNode node, CrioList *list);
 
-CrioNode *
+CrioNode
 _crio_eval(CrioList *list, struct crio_stream *stream);
 
 

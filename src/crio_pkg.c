@@ -23,7 +23,6 @@ void R_init_crio(DllInfo *info)
 
     REG_FUNC(crio_filter_make);
     REG_FUNC(crio_filter_free);
-    REG_FUNC(crio_set_filters);
 }
 
 static void crio_filter_xp_free(SEXP xp)
@@ -54,11 +53,12 @@ static void crio_stream_xp_free(SEXP xp)
 
 SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
                          void *fh,
-                         char *filename,
-                         void *ctx)
+                         const char *filename,
+                         void *ctx,
+                         CrioNode filter)
 {
     SEXP xp;
-    struct crio_stream *cs = crio_stream_make(read, fh, filename, ctx);
+    struct crio_stream *cs = crio_stream_make(read, fh, filename, ctx, filter);
     PROTECT(xp = R_MakeExternalPtr(cs, mkString("crio_stream"),
                                    R_NilValue));
     R_RegisterCFinalizerEx(xp, crio_stream_xp_free, 0);

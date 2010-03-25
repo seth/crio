@@ -12,7 +12,8 @@ crio_stream_make(
     int (*read)(struct crio_stream *stream),
     void *fh,
     char *filename,
-    void *ctx);
+    void *ctx,
+    CrioNode filter);
 
 
 /* release memory allocated using crio_stream_make.  The stream is not
@@ -48,13 +49,13 @@ void
 crio_filter_free(
     struct crio_filter *);
 
-/* Set the filters for a stream.
-*/
-struct crio_stream *
-crio_set_filters(
-    struct crio_stream *stream,
+/* Create a CrioNode that can be passed to crio_stream_make
+ * representing the combination of the specified filters using AND.
+ */
+CrioNode
+crio_combine_filters(
     int n,
-    struct crio_filter **filters);
+    ...);
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the

@@ -47,10 +47,11 @@ API = [
          :return => "SEXP",
          :args => ["int (*read)(struct crio_stream *stream)",
                    "void *fh",
-                   "char *filename",
-                   "void *ctx"]
+                   "const char *filename",
+                   "void *ctx",
+                   "CrioNode filter"]
        },
-       
+
        {
          :name => "crio_reset_file_xp",
          :return => "SEXP",
@@ -76,14 +77,15 @@ API = [
          :return => "const char *",
          :args => ["SEXP xp"]
        },
-       
+
        {
          :name => "crio_stream_make",
          :return => "struct crio_stream *",
          :args => ["int (*read)(struct crio_stream *stream)",
                    "void *fh",
                    "char *filename",
-                   "void *ctx"]
+                   "void *ctx",
+                   "CrioNode filter"]
        },
 
        {
@@ -116,17 +118,15 @@ API = [
        },
 
        {
-         :name => "crio_next",
-         :return => "int",
-         :args => ["struct crio_stream *"]
+         :name => "crio_combine_filters",
+         :return => "CrioNode",
+         :args => ["int n", "..."]
        },
 
        {
-         :name => "crio_set_filters",
-         :return => "struct crio_stream *",
-         :args => ["struct crio_stream *stream",
-                   "int n",
-                   "struct crio_filter **filters"]
+         :name => "crio_next",
+         :return => "int",
+         :args => ["struct crio_stream *"]
        },
 
        {

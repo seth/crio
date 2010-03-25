@@ -30,9 +30,10 @@
  */
 <%= declare("crio_filter_free") %>
 
-/* Set the filters for a stream.
-*/
-<%= declare("crio_set_filters") %>
+/* Create a CrioNode that can be passed to crio_stream_make
+ * representing the combination of the specified filters using AND.
+ */
+<%= declare("crio_combine_filters") %>
 
 /* Iterates over the stream.  The user-supplied read function is
    called until no records are left or a record passing the

@@ -29,24 +29,17 @@ struct crio_stream *
 crio_stream_make(int (*read)(struct crio_stream *stream),
                  void *fh,
                  char *filename,
-                 void *ctx)
+                 void *ctx,
+                 CrioNode filter)
 {
     struct crio_stream *stream = malloc(sizeof(struct crio_stream));
-    char *fname = NULL;
-    if (filename) {
-        int len = strlen(filename) + 1;
-        fname = malloc(sizeof(char) * len);
-        memcpy(fname, filename, len);
-    }
     if (stream) {
         stream->read = read;
         stream->file = fh;
         stream->ctx = ctx;
-        stream->filters = NULL;
-        stream->filter_count = 0;
+        stream->filter = filter;
         stream->nfiltered = 0;
         stream->nread = 0;
-        stream->private = NULL;
     }
     return copy_stream_filename(stream, filename);
 }
@@ -67,11 +60,17 @@ void crio_filter_free(struct crio_filter *cf)
 
 void crio_stream_free(struct crio_stream *stream)
 {
+    if (!stream) return;
     if (stream->filename) free(stream->filename);
+    if (stream->filter) {
+        /* FIXME: we leak CrioNodes like crazy */
+        crio_list_free(CRIO_LIST(stream->filter));
+        free(stream->filter);
+        stream->filter = NULL;
+    }
     free(stream);
     stream = NULL;
 }
-
 
 struct crio_stream *
 crio_reset_file(struct crio_stream *stream,
@@ -106,53 +105,37 @@ crio_filter_make(const char *name,
     return cf;
 }
 
-struct crio_stream *
-crio_set_filters(struct crio_stream *stream,
-                 int n,
-                 struct crio_filter **filters)
+CrioNode crio_combine_filters(int n, ...)
 {
-    stream->filter_count = n;
-    stream->filters = filters;
-    return stream;
-}
+    int i;
+    struct crio_filter *cf;
+    CrioList *list = NULL;
 
-int crio_next2(struct crio_stream *stream)
-{
-    int res, fres;
-    CrioNode *filter_ast_node = (CrioNode *)stream->private;
-    CrioList *filter_ast = CRIO_LIST(filter_ast_node);
-    while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
-        CrioNode *filter_result = _crio_eval(filter_ast, stream);
-        fres = CRIO_VALUE(filter_result);
-        free(filter_result);
-        /* filter pass or error */
-        if (CRIO_FILT_PASS == fres || CRIO_FILT_FAIL != fres) break;
+    va_list(ap);
+    va_start(ap, n);
+    for (i = 0; i < n; i++) {
+        cf = va_arg(ap, struct crio_filter *);
+        list = crio_cons(crio_mknode_filter(cf), list);
     }
-    stream->nfiltered++;
-    if (res == CRIO_EOF) stream->nread--;
-    return res;
+    va_end(ap);
+    return crio_mknode_list(crio_cons(crio_mknode_fun_and(), list));
 }
 
 int crio_next(struct crio_stream *stream)
 {
-    int res, i, fres;
-    struct crio_filter *cf;
-    if (stream->private) return crio_next2(stream);
+    int res, fres = CRIO_FILT_PASS;
+    CrioList *filter_ast = stream->filter ? CRIO_LIST(stream->filter) : NULL;
     while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
-        i = 0;
-        for (i = 0; i < stream->filter_count; i++) {
-            cf = stream->filters[i];
-            fres = cf->filter(stream, cf->filter_ctx);
-            if (CRIO_FILT_FAIL == fres) break;
-            if (CRIO_FILT_PASS != fres) return fres; /* must be error */
+        if (filter_ast) {
+            CrioNode filter_result = _crio_eval(filter_ast, stream);
+            fres = CRIO_VALUE(filter_result);
+            free(filter_result);
         }
-        if (i == stream->filter_count) {
-            stream->nfiltered++;
-            break;
-        }
+        /* filter pass or error */
+        if (CRIO_FILT_PASS == fres || CRIO_FILT_FAIL != fres) break;
     }
-    if (res == CRIO_EOF) stream->nread--;
-    return res;
+    res == CRIO_EOF ? stream->nread-- : stream->nfiltered++;
+    return fres == CRIO_ERR ? fres : res;
 }
 
 void crio_vset_errmsg(struct crio_stream *stream, const char *fmt, va_list ap)
@@ -182,18 +165,4 @@ void crio_set_errmsg(struct crio_stream *stream, const char *fmt, ...)
 const char * crio_errmsg(struct crio_stream *stream)
 {
     return (const char *)stream->error_message;
-}
-
-static struct crio_filter *
-crio_lookup_filter(struct crio_stream *stream, const char *name)
-{
-    int i;
-    struct crio_filter *filt;
-    for (i = 0; i < stream->filter_count; i++) {
-        filt = stream->filters[i];
-        if (0 == strcmp(name, filt->name)) {
-            return filt;
-        }
-    }
-    return NULL;
 }

@@ -32,8 +32,9 @@ SEXP
 crio_stream_make_xp(
     int (*read)(struct crio_stream *stream),
     void *fh,
-    char *filename,
-    void *ctx);
+    const char *filename,
+    void *ctx,
+    CrioNode filter);
 
 /* Reset the file handle and name for a "wrapped" crio stream  */
 SEXP

@@ -57,9 +57,9 @@ static int name_match(SEXP v, const char *name)
     return strcmp(SYMCHAR(v), name) == 0;
 }
 
-static CrioNode * _sym2CrioNode(SEXP s, SEXP rho)
+static CrioNode _sym2CrioNode(SEXP s, SEXP rho)
 {
-    CrioNode *node = NULL;
+    CrioNode node = NULL;
 
     if (TYPEOF(s) != SYMSXP)
         error("invalid type for _sym2CrioNode: %s", type2char(TYPEOF(s)));
@@ -83,10 +83,10 @@ static CrioNode * _sym2CrioNode(SEXP s, SEXP rho)
 #define DEBUGPRINT(x, y)
 
 /* Return a CrioNode of type CRIO_LIST_T */
-CrioNode *
+CrioNode
 _crio_R_to_ast(SEXP e, SEXP rho)
 {
-    CrioNode *tn1, *tn2;
+    CrioNode tn1, tn2;
     if (e == R_NilValue) return NULL;
     switch (TYPEOF(e)) {
     case LANGSXP:
@@ -133,7 +133,8 @@ SEXP crio_build_and_eval_ast(SEXP expr, SEXP rho, SEXP _ctx)
     CrioList *list = CRIO_LIST(_crio_R_to_ast(expr, rho));
     void *ctx = (void *)CHAR(STRING_ELT(_ctx, 0));
     struct crio_stream *stream = crio_stream_make(NULL, NULL,
-                                                  "test stream", ctx);
+                                                  "test stream", ctx,
+                                                  NULL);
     return ScalarInteger(CRIO_VALUE(_crio_eval(list, stream)));
 }
 
@@ -149,7 +150,6 @@ static int line_reader(struct crio_stream *stream)
 
 SEXP crio_filter_file(SEXP _fname, SEXP expr, SEXP rho)
 {
-    struct crio_stream *stream;
     int i = 0, ans_len = 256, res;
     PROTECT_INDEX pidx;
     SEXP ans, xp;
@@ -157,11 +157,9 @@ SEXP crio_filter_file(SEXP _fname, SEXP expr, SEXP rho)
     FILE *fh = fopen(fname, "r");
     char *buf = R_alloc(256, sizeof(char));
     memset(buf, 0, 256);
-    PROTECT(xp = crio_stream_make_xp(line_reader, fh, fname, (void *)buf));
-    /* FIXME */
-    stream = (struct crio_stream *)R_ExternalPtrAddr(xp);
-    stream->private = (void *)_crio_R_to_ast(expr, rho);
-    /* /FIXME */
+    PROTECT(xp = crio_stream_make_xp(line_reader, (void *)fh, fname,
+                                     (void *)buf,
+                                     _crio_R_to_ast(expr, rho)));
     PROTECT_WITH_INDEX(ans = Rf_allocVector(STRSXP, ans_len), &pidx);
     while (CRIO_OK == (res = crio_next_xp(xp))) {
         if (i == ans_len) {

@@ -38,7 +38,7 @@ void Test_node_making(CuTest *tc)
 {
     CrioList *list = NULL;
 
-    CrioNode *n = crio_mknode_int(5);
+    CrioNode n = crio_mknode_int(5);
     list = crio_cons(n, list);
 
     n = crio_mknode_fun(op_fun);
@@ -57,7 +57,7 @@ void Test_node_making(CuTest *tc)
 
 void Test_ast_identity_eval(CuTest *tc)
 {
-    CrioNode *n = crio_mknode_int(4), *ans;
+    CrioNode n = crio_mknode_int(4), ans;
     CrioList *list = crio_cons(n , NULL);
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, 4, CRIO_VALUE(ans));
@@ -65,13 +65,83 @@ void Test_ast_identity_eval(CuTest *tc)
     free(n);
 }
 
+void Test_ast_fun_AND_error_propagation(CuTest *tc)
+{
+    CrioList *list;
+    CrioNode
+        ans, nErr = crio_mknode_int(CRIO_ERR),
+        n1 = crio_mknode_int(1),
+        n0 = crio_mknode_int(0),
+        fun_and = crio_mknode_fun_and();
+
+    list = crio_cons(fun_and, crio_cons(nErr, NULL));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+
+    list = crio_cons(fun_and, crio_cons(n1, crio_cons(nErr, NULL)));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+
+    list = crio_cons(fun_and, crio_cons(n0, crio_cons(nErr, NULL)));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+
+    /* FIXME: if we would short-circuit properly, this would return
+       false instead of error.  Also evaluation order is backwards.
+     */
+    list = crio_cons(fun_and,
+                     crio_cons(n0,
+                               crio_cons(n1, crio_cons(nErr, NULL))));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+}
+
+void Test_ast_fun_OR_error_propagation(CuTest *tc)
+{
+    CrioList *list;
+    CrioNode
+        ans, nErr = crio_mknode_int(CRIO_ERR),
+        n1 = crio_mknode_int(1),
+        n0 = crio_mknode_int(0),
+        fun_or = crio_mknode_fun_or();
+
+    list = crio_cons(fun_or, crio_cons(nErr, NULL));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+
+    list = crio_cons(fun_or, crio_cons(n1, crio_cons(nErr, NULL)));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+
+    list = crio_cons(fun_or, crio_cons(n0, crio_cons(nErr, NULL)));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+
+    /* FIXME: if we would short-circuit properly, this would return
+       false instead of error.  Also evaluation order is backwards.
+     */
+    list = crio_cons(fun_or,
+                     crio_cons(n0,
+                               crio_cons(n1, crio_cons(nErr, NULL))));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    crio_list_free(list);
+}
+
 void Test_ast_fun_AND_eval_simple(CuTest *tc)
 {
     CrioList *list;
     CrioNode
-        *ans, *n1 = crio_mknode_int(1),
-        *n0 = crio_mknode_int(0),
-        *fun_and = crio_mknode_fun_and();
+        ans, n1 = crio_mknode_int(1),
+        n0 = crio_mknode_int(0),
+        fun_and = crio_mknode_fun_and();
 
     /* test case:  (and 1 1) */
     list = crio_cons(fun_and,
@@ -110,9 +180,9 @@ void Test_ast_fun_OR_eval_simple(CuTest *tc)
 {
     CrioList *list;
     CrioNode
-        *ans, *n1 = crio_mknode_int(1),
-        *n0 = crio_mknode_int(0),
-        *fun_or = crio_mknode_fun_or();
+        ans, n1 = crio_mknode_int(1),
+        n0 = crio_mknode_int(0),
+        fun_or = crio_mknode_fun_or();
 
     /* test case:  (or 1 1) */
     list = crio_cons(fun_or,
@@ -153,14 +223,15 @@ void Test_ast_filter_eval_simple(CuTest *tc)
     char ctx[256];
     struct crio_filter *cf = crio_filter_make("alpha", alpha_filter,
                                               NULL, NULL);
-    CrioNode *ans,
-        *filt_node = crio_mknode_filter(cf);
+    CrioNode ans,
+        filt_node = crio_mknode_filter(cf);
 
     struct crio_stream *stream = crio_stream_make(NULL, NULL,
-                                                  "dri", &ctx);
+                                                  "dri", &ctx, NULL);
 
     list = crio_cons(filt_node, NULL);
     strcpy(ctx, "no digits here");
+    stream->filter = crio_mknode_list(list);
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
@@ -178,19 +249,24 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     struct crio_filter *cfA = crio_filter_make("alpha", alpha_filter,
                                               NULL, NULL),
         *cfK = crio_filter_make("hask", has_k_filter, NULL, NULL);
-    CrioNode *ans,
-        *filtA_node = crio_mknode_filter(cfA),
-        *filtK_node = crio_mknode_filter(cfK),
-        *fun_or = crio_mknode_fun_or(),
-        *fun_and = crio_mknode_fun_and(),
-        *n1 = crio_mknode_int(1);
+    CrioNode ans,
+        filtA_node = crio_mknode_filter(cfA),
+        filtK_node = crio_mknode_filter(cfK),
+        fun_or = crio_mknode_fun_or(),
+        fun_and = crio_mknode_fun_and(),
+        n1 = crio_mknode_int(1);
 
     struct crio_stream *stream = crio_stream_make(NULL, NULL,
-                                                  "dri", &ctx);
+                                                  "dri", &ctx,
+                                                  NULL);
+
     /* (or has_k no_digits) */
     list = crio_cons(fun_or,
                      crio_cons(filtK_node,
                                crio_cons(filtA_node, NULL)));
+    /* FIXME: do we want this sort of function? */
+    /* crio_stream_set_filter(stream, crio_mknode_list(list)); */
+    stream->filter = crio_mknode_list(list);
     strcpy(ctx, "no digits here");
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
@@ -201,6 +277,7 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     list = crio_cons(fun_and,
                      crio_cons(filtK_node,
                                crio_cons(filtA_node, NULL)));
+    stream->filter = crio_mknode_list(list);
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
@@ -211,6 +288,7 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
                      crio_cons(filtK_node,
                                crio_cons(filtA_node, NULL)));
     list = crio_cons(fun_or, crio_cons(n1, list));
+    stream->filter = crio_mknode_list(list);
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
@@ -224,11 +302,11 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     list = crio_cons(fun_or, 
                      crio_cons(crio_mknode_list(list),
                                crio_cons(n1, NULL)));
+    stream->filter = crio_mknode_list(list);
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
     crio_list_free(list);
-
 }
 
 
