@@ -1,4 +1,5 @@
 #include "crio_pkg.h"
+#include "crio_r_to_crio.h"
 
 #define PKG "crio"
 
@@ -55,9 +56,11 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
                          void *fh,
                          const char *filename,
                          void *ctx,
-                         CrioNode filter)
+                         SEXP expr,
+                         SEXP rho)
 {
     SEXP xp;
+    CrioNode filter = _crio_R_to_ast(expr, rho);
     struct crio_stream *cs = crio_stream_make(read, fh, filename, ctx, filter);
     PROTECT(xp = R_MakeExternalPtr(cs, mkString("crio_stream"),
                                    R_NilValue));

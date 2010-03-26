@@ -22,7 +22,7 @@ copy_stream_filename(struct crio_stream *stream,
 struct crio_stream *
 crio_stream_make(int (*read)(struct crio_stream *stream),
                  void *fh,
-                 char *filename,
+                 const char *filename,
                  void *ctx,
                  CrioNode filter)
 {

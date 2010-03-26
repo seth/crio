@@ -49,7 +49,8 @@ API = [
                    "void *fh",
                    "const char *filename",
                    "void *ctx",
-                   "CrioNode filter"]
+                   "SEXP expr",
+                   "SEXP rho"]
        },
 
        {
@@ -83,7 +84,7 @@ API = [
          :return => "struct crio_stream *",
          :args => ["int (*read)(struct crio_stream *stream)",
                    "void *fh",
-                   "char *filename",
+                   "const char *filename",
                    "void *ctx",
                    "CrioNode filter"]
        },

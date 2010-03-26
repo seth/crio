@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <Rinternals.h>
-#include <R_ext/Rdynload.h>
 #include <stdlib.h>
-#include "crio_pkg.h"
-#include "crio/crio.h"
+#include "crio_r_to_crio.h"
 #include "crio/crio_eval.h"
-
+#include "crio_pkg.h"
 
 /* findVarInFrame */
 
@@ -80,7 +77,11 @@ static CrioNode _sym2CrioNode(SEXP s, SEXP rho)
 }
 
 /* remove this to turn debugging ON */
-#define DEBUGPRINT(x, y)
+#if 0
+  #define DEBUG_AST(x, y) DEBUGPRINT(x, y)
+#else
+  #define DEBUG_AST(x, y)
+#endif
 
 /* Return a CrioNode of type CRIO_LIST_T */
 CrioNode
@@ -93,7 +94,7 @@ _crio_R_to_ast(SEXP e, SEXP rho)
     case LISTSXP:
         switch (TYPEOF(CAR(e))) {
         case SYMSXP:
-            DEBUGPRINT("SYMSXP: %s\n", SYMCHAR(CAR(e)));
+            DEBUG_AST("SYMSXP: %s\n", SYMCHAR(CAR(e)));
             if (name_match(CAR(e), "(")) {
                 return _crio_R_to_ast(CAR(CDR(e)), rho);
             }
@@ -103,14 +104,14 @@ _crio_R_to_ast(SEXP e, SEXP rho)
                           tn1 ? CRIO_LIST(tn1) : NULL));
         case LANGSXP:
         case LISTSXP:
-            DEBUGPRINT("LANGSXP/LISTSXP, double recurse %d\n", 1);
+            DEBUG_AST("LANGSXP/LISTSXP, double recurse %d\n", 1);
             tn1 = _crio_R_to_ast(CAR(e), rho);
             tn2 = _crio_R_to_ast(CDR(e), rho);
             return crio_mknode_list(crio_cons(tn1,
                                               tn2 ? CRIO_LIST(tn2) : NULL));
         }
     case SYMSXP:
-        DEBUGPRINT("bare SYMSXP: %s\n", SYMCHAR(e));
+        DEBUG_AST("bare SYMSXP: %s\n", SYMCHAR(e));
         return crio_mknode_list(crio_cons(_sym2CrioNode(e, rho), NULL));
     default:
         error("unhandled SEXP type in _crio_R_to_ast: %s",
@@ -159,7 +160,7 @@ SEXP crio_filter_file(SEXP _fname, SEXP expr, SEXP rho)
     memset(buf, 0, 256);
     PROTECT(xp = crio_stream_make_xp(line_reader, (void *)fh, fname,
                                      (void *)buf,
-                                     _crio_R_to_ast(expr, rho)));
+                                     expr, rho));
     PROTECT_WITH_INDEX(ans = Rf_allocVector(STRSXP, ans_len), &pidx);
     while (CRIO_OK == (res = crio_next_xp(xp))) {
         if (i == ans_len) {
