@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "crio.h"
+#include "crio_mem.h"
 
 enum crio_types {
     CRIO_INT_T,
@@ -41,6 +42,8 @@ struct _crio_node {
 #define CRIO_CAR(x) (x)->node
 #define CRIO_CDR(x) (x)->next
 #define CRIO_IS_NIL(x) (!CRIO_CAR(x) && !CRIO_CDR(x))
+
+void crio_set_global_mem_pool(struct _crio_mpool *pool);
 
 CrioList *crio_cons(CrioNode node, CrioList *list);
 void crio_list_free(CrioList *list, int keep_nodes);

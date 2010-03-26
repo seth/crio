@@ -9,7 +9,6 @@ struct _crio_mpool {
     void *data;
     struct _crio_mpool *next;
 };
-typedef struct _crio_mpool MemPool;
 
 void
 crio_mpool_init(

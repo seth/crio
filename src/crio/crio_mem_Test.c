@@ -10,7 +10,7 @@ void Test_mem_pool_basics(CuTest *tc)
 {
     int i;
     crio_mpool_init(malloc, free, NULL);
-    MemPool *pool = crio_mpool_make(sizeof(double) * 50);
+    struct _crio_mpool *pool = crio_mpool_make(sizeof(double) * 50);
     CuAssertIntEquals(tc, 0, crio_mpool_mark(pool));
 
     double *dd1 = crio_mpool_alloc(pool, sizeof(double) * 25);
@@ -46,7 +46,7 @@ void Test_mem_pool_different_sizes(CuTest *tc)
 {
     int i;
     crio_mpool_init(malloc, free, NULL);
-    MemPool *pool = crio_mpool_make(sizeof(unsigned char) * 1024);
+    struct _crio_mpool *pool = crio_mpool_make(sizeof(unsigned char) * 1024);
 
     struct my_test_struct *mts =
         crio_mpool_alloc(pool,

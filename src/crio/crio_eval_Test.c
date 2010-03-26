@@ -37,7 +37,8 @@ static int op_fun(CrioList *list) {
 void Test_node_making(CuTest *tc)
 {
     CrioList *list = NULL;
-
+    struct _crio_mpool *pool = crio_mpool_make(sizeof(char) * 1024);
+    crio_set_global_mem_pool(pool);
     CrioNode n = crio_mknode_int(5);
     list = crio_cons(n, list);
 
@@ -50,9 +51,12 @@ void Test_node_making(CuTest *tc)
 
     crio_print_list(list);
     CrioList *rlist = crio_list_reverse(list);
-    crio_list_free(list, 1);
+    /* crio_list_free(list, 1); */
     crio_print_list(rlist);
-    crio_list_free(rlist, 0);
+    /* crio_list_free(rlist, 0); */
+
+    crio_mpool_free(pool);
+    crio_set_global_mem_pool(NULL);
 }
 
 void Test_ast_identity_eval(CuTest *tc)

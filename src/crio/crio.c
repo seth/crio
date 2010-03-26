@@ -119,9 +119,7 @@ int crio_next(struct crio_stream *stream)
     CrioList *filter_ast = stream->filter ? CRIO_LIST(stream->filter) : NULL;
     while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
         if (filter_ast) {
-            CrioNode filter_result = _crio_eval(filter_ast, stream);
-            fres = CRIO_VALUE(filter_result);
-            free(filter_result);
+            fres = CRIO_VALUE(_crio_eval(filter_ast, stream));
         }
         /* filter pass or error */
         if (CRIO_FILT_PASS == fres || CRIO_FILT_FAIL != fres) break;

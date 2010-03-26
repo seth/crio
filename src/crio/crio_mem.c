@@ -51,7 +51,7 @@ crio_mpool_alloc(struct _crio_mpool *pool, size_t s)
     int avail = (pool->size - pool->used);
     /* FIXME: we should allocate a new pool and link in */
     if (s > avail) _panic("crio_mpool_alloc: no space for %d", s);
-    void * mem = pool->data + (pool->used);
+    void * mem = (char *)pool->data + pool->used;
     pool->used += s;
     return mem;
 }

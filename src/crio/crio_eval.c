@@ -1,6 +1,24 @@
 #include "crio_eval.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
+
+static struct _crio_mpool *GLOBAL_MEM_POOL = NULL;
+
+void crio_set_global_mem_pool(struct _crio_mpool *pool)
+{
+    GLOBAL_MEM_POOL = pool;
+}
+
+static void *
+xmalloc(size_t s)
+{
+    if (GLOBAL_MEM_POOL)
+        return crio_mpool_alloc(GLOBAL_MEM_POOL, s);
+    else {
+        return malloc(s);
+    }
+}
 
 static int crio_fun_and(CrioList *args);
 static int crio_fun_or(CrioList *args);
@@ -11,6 +29,8 @@ char *crio_type_names[3] = {"CRIO_INT_T",
 
 CrioList _LIST_NIL = {NULL, NULL};
 CrioList *LIST_NIL = &_LIST_NIL;
+
+#define P2I(v) (intptr_t)v & 0xffffffff
 
 void crio_print_node(CrioNode node)
 {
@@ -27,12 +47,12 @@ void crio_print_node(CrioNode node)
             strncpy(name, "&", sizeof(name));
         else if (CRIO_FUN(node) == &crio_fun_or)
             strncpy(name, "|", sizeof(name));
-        snprintf(buf, sizeof(buf), "[FUN (%s) <%p>]", name, CRIO_FUN(node));
+        snprintf(buf, sizeof(buf), "[FUN (%s) <%lx>]", name, P2I(CRIO_FUN(node)));
         break;
     case CRIO_FILTER_T:
         strncpy(name, CRIO_FILTER(node)->name, sizeof(name));
-        snprintf(buf, sizeof(buf), "[FILTER (%s) <%p>]",
-                 CRIO_FILTER(node)->name, (void *)CRIO_FILTER(node));
+        snprintf(buf, sizeof(buf), "[FILTER (%s) <%lx>]",
+                 CRIO_FILTER(node)->name, P2I(CRIO_FILTER(node)));
         break;
     case CRIO_LIST_T:
         crio_print_list(CRIO_LIST(node));
@@ -63,7 +83,7 @@ void crio_print_list(CrioList *list)
 CrioNode
 crio_mknode_int(int v)
 {
-    CrioNode node = malloc(sizeof(struct _crio_node));
+    CrioNode node = xmalloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
     CRIO_VALUE(node) = v;
@@ -73,7 +93,7 @@ crio_mknode_int(int v)
 CrioNode
 crio_mknode_fun(int (*fun)(CrioList *))
 {
-    CrioNode node = malloc(sizeof(struct _crio_node));
+    CrioNode node = xmalloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_FUN_T;
     CRIO_FUN(node) = fun;
@@ -83,7 +103,7 @@ crio_mknode_fun(int (*fun)(CrioList *))
 CrioNode
 crio_mknode_filter(struct crio_filter *filter)
 {
-    CrioNode node = malloc(sizeof(struct _crio_node));
+    CrioNode node = xmalloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_FILTER_T;
     CRIO_FILTER(node) = filter;
@@ -93,7 +113,7 @@ crio_mknode_filter(struct crio_filter *filter)
 CrioNode
 crio_mknode_list(CrioList *list)
 {
-    CrioNode node = malloc(sizeof(struct _crio_node));
+    CrioNode node = xmalloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_LIST_T;
     CRIO_LIST(node) = list;
@@ -106,13 +126,13 @@ crio_cons(CrioNode node, CrioList *list)
     int alloced_head = 0;
     CrioList *head = list;
     if (!list) {
-        head = malloc(sizeof(CrioList));
+        head = xmalloc(sizeof(CrioList));
         if (!head) return NULL;
         alloced_head = 1;
         head->next = NULL;
         head->node = NULL;
     }
-    CrioList *e = malloc(sizeof(CrioList));
+    CrioList *e = xmalloc(sizeof(CrioList));
     if (!e) {
         if (alloced_head) free(head);
         return NULL;
@@ -171,7 +191,7 @@ crio_eval_filter(CrioNode e,
 {
     struct crio_filter *cf = CRIO_FILTER(e);
     int res = cf->filter(stream, cf->filter_ctx);
-    CrioNode node = malloc(sizeof(struct _crio_node));
+    CrioNode node = xmalloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
     CRIO_VALUE(node) = res;
@@ -182,7 +202,7 @@ CrioNode
 crio_eval_fun(CrioNode e, CrioList *args)
 {
     int res = CRIO_FUN(e)(args);
-    CrioNode node = malloc(sizeof(struct _crio_node));
+    CrioNode node = xmalloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
     CRIO_VALUE(node) = res;
