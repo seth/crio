@@ -63,7 +63,7 @@ void crio_print_list(CrioList *list)
 CrioNode
 crio_mknode_int(int v)
 {
-    CrioNode node = malloc(sizeof(CrioNode));
+    CrioNode node = malloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
     CRIO_VALUE(node) = v;
@@ -73,7 +73,7 @@ crio_mknode_int(int v)
 CrioNode
 crio_mknode_fun(int (*fun)(CrioList *))
 {
-    CrioNode node = malloc(sizeof(CrioNode));
+    CrioNode node = malloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_FUN_T;
     CRIO_FUN(node) = fun;
@@ -83,7 +83,7 @@ crio_mknode_fun(int (*fun)(CrioList *))
 CrioNode
 crio_mknode_filter(struct crio_filter *filter)
 {
-    CrioNode node = malloc(sizeof(CrioNode));
+    CrioNode node = malloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_FILTER_T;
     CRIO_FILTER(node) = filter;
@@ -93,7 +93,7 @@ crio_mknode_filter(struct crio_filter *filter)
 CrioNode
 crio_mknode_list(CrioList *list)
 {
-    CrioNode node = malloc(sizeof(CrioNode));
+    CrioNode node = malloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_LIST_T;
     CRIO_LIST(node) = list;
@@ -171,7 +171,7 @@ crio_eval_filter(CrioNode e,
 {
     struct crio_filter *cf = CRIO_FILTER(e);
     int res = cf->filter(stream, cf->filter_ctx);
-    CrioNode node = malloc(sizeof(CrioNode));
+    CrioNode node = malloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
     CRIO_VALUE(node) = res;
@@ -182,7 +182,7 @@ CrioNode
 crio_eval_fun(CrioNode e, CrioList *args)
 {
     int res = CRIO_FUN(e)(args);
-    CrioNode node = malloc(sizeof(CrioNode));
+    CrioNode node = malloc(sizeof(struct _crio_node));
     if (!node) return NULL;
     CRIO_TYPE(node) = CRIO_INT_T;
     CRIO_VALUE(node) = res;
