@@ -11,6 +11,9 @@ Version 0.0.4
   expressions into the crio native AST.  This will allow users to
   specify logical combinations of filters.
 
+- Added a simple memory pool to manage crio list and node allocation.
+
+
 Version 0.0.3
 
 - crio_set_errmsg now provides an sprintf-style interface
