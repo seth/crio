@@ -43,7 +43,7 @@ struct _crio_node {
 #define CRIO_IS_NIL(x) (!CRIO_CAR(x) && !CRIO_CDR(x))
 
 CrioList *crio_cons(CrioNode node, CrioList *list);
-void crio_list_free(CrioList *list);
+void crio_list_free(CrioList *list, int keep_nodes);
 CrioList *crio_list_reverse(CrioList *list);
 
 void crio_print_node(CrioNode node);

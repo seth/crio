@@ -122,9 +122,24 @@ crio_cons(CrioNode node, CrioList *list)
     return e;
 }
 
-void crio_list_free(CrioList *list)
+static void free_nodes_in_list(CrioList *list)
+{
+    CrioList *h = list;
+    if (list) {
+        while (!CRIO_IS_NIL(h)) {
+            if (CRIO_CAR(h)) {
+                free(CRIO_CAR(h));
+                CRIO_CAR(h) = NULL;
+            }
+            h = CRIO_CDR(h);
+        }
+    }
+}
+
+void crio_list_free(CrioList *list, int keep_nodes)
 {
     CrioList *h = list, *tmp;
+    if (!keep_nodes) free_nodes_in_list(list);
     if (list) {
         while (!CRIO_IS_NIL(h)) {
             tmp = CRIO_CDR(h);

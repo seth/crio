@@ -50,9 +50,9 @@ void Test_node_making(CuTest *tc)
 
     crio_print_list(list);
     CrioList *rlist = crio_list_reverse(list);
-    crio_list_free(list);
+    crio_list_free(list, 1);
     crio_print_list(rlist);
-    crio_list_free(rlist);
+    crio_list_free(rlist, 0);
 }
 
 void Test_ast_identity_eval(CuTest *tc)
@@ -61,8 +61,7 @@ void Test_ast_identity_eval(CuTest *tc)
     CrioList *list = crio_cons(n , NULL);
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, 4, CRIO_VALUE(ans));
-    crio_list_free(list);
-    free(n);
+    crio_list_free(list, 0);
 }
 
 void Test_ast_fun_AND_error_propagation(CuTest *tc)
@@ -77,17 +76,17 @@ void Test_ast_fun_AND_error_propagation(CuTest *tc)
     list = crio_cons(fun_and, crio_cons(nErr, NULL));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     list = crio_cons(fun_and, crio_cons(n1, crio_cons(nErr, NULL)));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     list = crio_cons(fun_and, crio_cons(n0, crio_cons(nErr, NULL)));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* FIXME: if we would short-circuit properly, this would return
        false instead of error.  Also evaluation order is backwards.
@@ -97,7 +96,7 @@ void Test_ast_fun_AND_error_propagation(CuTest *tc)
                                crio_cons(n1, crio_cons(nErr, NULL))));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 0);
 }
 
 void Test_ast_fun_OR_error_propagation(CuTest *tc)
@@ -112,17 +111,17 @@ void Test_ast_fun_OR_error_propagation(CuTest *tc)
     list = crio_cons(fun_or, crio_cons(nErr, NULL));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     list = crio_cons(fun_or, crio_cons(n1, crio_cons(nErr, NULL)));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     list = crio_cons(fun_or, crio_cons(n0, crio_cons(nErr, NULL)));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* FIXME: if we would short-circuit properly, this would return
        false instead of error.  Also evaluation order is backwards.
@@ -132,7 +131,7 @@ void Test_ast_fun_OR_error_propagation(CuTest *tc)
                                crio_cons(n1, crio_cons(nErr, NULL))));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 0);
 }
 
 void Test_ast_fun_AND_eval_simple(CuTest *tc)
@@ -149,7 +148,7 @@ void Test_ast_fun_AND_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* test case:  (and 0 1) */
     list = crio_cons(fun_and,
@@ -157,7 +156,7 @@ void Test_ast_fun_AND_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* test case:  (and 1 0) */
     list = crio_cons(fun_and,
@@ -165,7 +164,7 @@ void Test_ast_fun_AND_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* test case:  (and 0 0) */
     list = crio_cons(fun_and,
@@ -173,7 +172,11 @@ void Test_ast_fun_AND_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
+    free(ans);
+    free(n1);
+    free(n0);
+    free(fun_and);
 }
 
 void Test_ast_fun_OR_eval_simple(CuTest *tc)
@@ -190,7 +193,7 @@ void Test_ast_fun_OR_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* test case:  (or 0 1) */
     list = crio_cons(fun_or,
@@ -198,7 +201,7 @@ void Test_ast_fun_OR_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* test case:  (or 1 0) */
     list = crio_cons(fun_or,
@@ -206,7 +209,7 @@ void Test_ast_fun_OR_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* test case:  (or 0 0) */
     list = crio_cons(fun_or,
@@ -214,7 +217,11 @@ void Test_ast_fun_OR_eval_simple(CuTest *tc)
     ans = _crio_eval(list, NULL);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
+    free(ans);
+    free(n1);
+    free(n0);
+    free(fun_or);
 }
 
 void Test_ast_filter_eval_simple(CuTest *tc)
@@ -240,6 +247,7 @@ void Test_ast_filter_eval_simple(CuTest *tc)
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
+    crio_list_free(list, 0);
 }
 
 void Test_ast_filter_eval_compound1(CuTest *tc)
@@ -271,7 +279,7 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* (and has_k no_digits) */
     list = crio_cons(fun_and,
@@ -281,7 +289,7 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* (or 1 (and has_k no_digits)) */
     list = crio_cons(fun_and,
@@ -292,7 +300,7 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 1);
 
     /* (or (and has_k no_digits) 1) */
     /* this tests an AST where CAR(s) is itself a list */
@@ -306,7 +314,7 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     ans = _crio_eval(list, stream);
     CuAssertTrue(tc, IS_CRIO_INT_T(ans));
     CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
-    crio_list_free(list);
+    crio_list_free(list, 0);
 }
 
 
