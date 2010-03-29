@@ -34,8 +34,8 @@ filters <- list(
 set.seed(0x8bba)
 data_lines <- make_data(10000, 100)
 tf <- tempfile()
-on.exit(file.remove(tf))
 writeLines(data_lines, con = tf)
 
 stuff <- read_demo(tf, "a | b", filters)
+file.remove(tf)
 }
