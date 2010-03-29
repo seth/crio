@@ -56,11 +56,6 @@ void crio_stream_free(struct crio_stream *stream)
 {
     if (!stream) return;
     if (stream->filename) free(stream->filename);
-    if (stream->filter) {
-        crio_list_free(CRIO_LIST(stream->filter), 0);
-        free(stream->filter);
-        stream->filter = NULL;
-    }
     free(stream);
     stream = NULL;
 }
