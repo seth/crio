@@ -3,7 +3,7 @@
 
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
-#include "crio/crio.h"
+#include "crio.h"
 
 /* Create a crio filter wrapped in an external pointer.
  *
