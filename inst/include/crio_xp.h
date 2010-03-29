@@ -15,12 +15,12 @@
  * when the external pointer is garbage collected, the crio data
  * structures will be finalized.
  */
+extern
 SEXP
-crio_filter_make_xp(
+(*crio_filter_make_xp)(
     const char *name,
     int (*filter)(struct crio_stream *stream, void *filter_ctx),
     SEXP filter_ctx);
-
 /* Create a crio stream wrapped in an external pointer.
  * 
  * The advantage of the crio_*_xp functions is that finalization of
@@ -28,43 +28,43 @@ crio_filter_make_xp(
  * particularly advantageous if an error occurs in R API functions as
  * it allows memory allocated by crio to be freed.
  */
+extern
 SEXP
-crio_stream_make_xp(
+(*crio_stream_make_xp)(
     int (*read)(struct crio_stream *stream),
     void *file,
     const char *filename,
     void *ctx,
     SEXP expr,
     SEXP rho);
-
 /* Reset the file handle and name for a "wrapped" crio stream  */
+extern
 SEXP
-crio_reset_file_xp(
+(*crio_reset_file_xp)(
     SEXP xp,
     void *file,
     const char *filename);
-
 /* Read from stream until a record passes filters or EOF */
+extern
 int
-crio_next_xp(
+(*crio_next_xp)(
     SEXP xp);
-
 /* Set the error message for the crio stream */
+extern
 void
-crio_set_errmsg_xp(
+(*crio_set_errmsg_xp)(
     SEXP xp,
     const char *fmt,
     ...);
-
 /* Get the error message last set on the crio stream */
+extern
 const char *
-crio_errmsg_xp(
+(*crio_errmsg_xp)(
     SEXP xp);
-
 /* Returns a pointer to the void * representing the stream context
    contained in the specified crio stream object.  */
+extern
 void *
-crio_context_from_xp(
+(*crio_context_from_xp)(
     SEXP xp);
-
 #endif  /* CRIO_PKG_H_ */

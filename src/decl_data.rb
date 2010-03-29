@@ -13,13 +13,13 @@ FILES = [
          },
 
          {
-           :type => "header",
+           :type => "stubs",
            :src => "src/crio/crio_h.template",
            :dst => "inst/include/crio.h"
          },
 
          {
-           :type => "header",
+           :type => "stubs",
            :src => "src/crio_pkg_h.template",
            :dst => "inst/include/crio_xp.h"
          },

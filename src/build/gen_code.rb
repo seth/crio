@@ -8,12 +8,14 @@ class CodeGen
   end
 
   def write_header(template_file, dest_file)
+    alias :declare :declare_std
     template = ERB.new(open(template_file).read)
     puts "writing: #{dest_file}"
     open(dest_file, "w") { |f| f.write(template.result(binding)) }
   end
 
   def write_stubs(template_file, dest_file)
+    alias :declare :declare_fp
     template = ERB.new(open(template_file).read, 0, "%<>")
     puts "writing: #{dest_file}"
     open(dest_file, "w") { |f| f.write(template.result(binding)) }
@@ -54,9 +56,13 @@ class CodeGen
     spc = "\n" + (" " * 9)
     "MKFP(#{p[:return]},#{spc}#{p[:name]},#{spc}(#{args}));\n"
   end
-  
-  def declare(name)
+
+  def declare_std(name)
     make_header_decl(api_for(name))
+  end
+
+  def declare_fp(name)
+    make_extern_fp_decl(api_for(name))
   end
   
 end
