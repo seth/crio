@@ -1,0 +1,15 @@
+Package: criodemo
+Type: Package
+Title: Demo package using crio for C/R I/O
+Version: 1.0.0
+Date: 2010-03-29
+Author: Seth Falcon <sfalcon@fhcrc.org>
+Maintainer: Seth Falcon <sfalcon@fhcrc.org>
+Description: Demonstrates how an R package can integrate with
+             the crio package to provide user customizable filtering
+             composed of filters and I/O functions written in C
+License: Artistic-2.0
+LazyLoad: yes
+Depends: crio
+LinkingTo: crio
+

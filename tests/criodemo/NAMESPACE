@@ -1,0 +1,6 @@
+useDynLib("criodemo",
+          "_make_strstr_filter",
+          "_demo_filter_file")
+
+exportPattern("^[^\\._]")
+
