@@ -68,7 +68,7 @@ void crio_stream_free(struct crio_stream *stream)
 struct crio_stream *
 crio_reset_file(struct crio_stream *stream,
                 void *fh,
-                char *filename)
+                const char *filename)
 {
     stream->file = fh;
     if (stream->filename) free(stream->filename);

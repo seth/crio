@@ -42,7 +42,7 @@ SEXP
 crio_reset_file_xp(
     SEXP xp,
     void *fh,
-    char *filename);
+    const char *filename);
 
 /* Read from stream until a record passes filters or EOF */
 int

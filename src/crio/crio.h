@@ -31,7 +31,7 @@ struct crio_stream *
 crio_reset_file(
     struct crio_stream *stream,
     void *fh,
-    char *filename);
+    const char *filename);
 
 /* Create a new crio filter.
  *

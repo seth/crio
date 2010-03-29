@@ -90,7 +90,7 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
     
 }
 
-SEXP crio_reset_file_xp(SEXP xp, void *fh, char *filename)
+SEXP crio_reset_file_xp(SEXP xp, void *fh, const char *filename)
 {
     struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     csxp->stream = crio_reset_file(csxp->stream, fh, filename);

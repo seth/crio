@@ -58,7 +58,7 @@ API = [
          :return => "SEXP",
          :args => ["SEXP xp",
                    "void *fh",
-                   "char *filename"]
+                   "const char *filename"]
        },
 
        {
@@ -100,7 +100,7 @@ API = [
          :return => "struct crio_stream *",
          :args => ["struct crio_stream *stream",
                    "void *fh",
-                   "char *filename"]
+                   "const char *filename"]
        },
 
        {
