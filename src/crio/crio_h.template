@@ -56,4 +56,9 @@
 /* Return the current error message for a stream. */
 <%= declare("crio_errmsg") %>
 
+/* Return a pointer to the file stream contained within 
+   the specified crio stream.
+ */
+<%= declare("crio_current_file") %>
+
 #endif  /* CRIO_H_ */

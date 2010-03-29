@@ -35,6 +35,10 @@ INFP(const char *,
      crio_errmsg_xp,
      (SEXP xp));
 
+INFP(void *,
+     crio_context_from_xp,
+     (SEXP xp));
+
 INFP(struct crio_stream *,
      crio_stream_make,
      (int (*read)(struct crio_stream *stream), void *file, const char *filename, void *ctx, CrioNode filter));
@@ -75,6 +79,10 @@ INFP(const char *,
      crio_errmsg,
      (struct crio_stream *stream));
 
+INFP(void *,
+     crio_current_file,
+     (struct crio_stream *stream));
+
 
 /* call this function inside YourPackage_init */
 void crio_initialize_stubs()
@@ -101,6 +109,10 @@ void crio_initialize_stubs()
 
     MKFP(const char *,
          crio_errmsg_xp,
+         (SEXP xp));
+
+    MKFP(void *,
+         crio_context_from_xp,
          (SEXP xp));
 
     MKFP(struct crio_stream *,
@@ -141,6 +153,10 @@ void crio_initialize_stubs()
 
     MKFP(const char *,
          crio_errmsg,
+         (struct crio_stream *stream));
+
+    MKFP(void *,
+         crio_current_file,
          (struct crio_stream *stream));
 
 }

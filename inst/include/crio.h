@@ -90,4 +90,11 @@ const char *
 crio_errmsg(
     struct crio_stream *stream);
 
+/* Return a pointer to the file stream contained within 
+   the specified crio stream.
+ */
+void *
+crio_current_file(
+    struct crio_stream *stream);
+
 #endif  /* CRIO_H_ */

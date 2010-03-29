@@ -21,6 +21,7 @@ void R_init_crio(DllInfo *info)
     REG_FUNC(crio_set_errmsg_xp);
     REG_FUNC(crio_errmsg_xp);
     REG_FUNC(crio_filter_make_xp);
+    REG_FUNC(crio_context_from_xp);
 
     REG_FUNC(crio_stream_make);
     REG_FUNC(crio_stream_free);
@@ -33,6 +34,7 @@ void R_init_crio(DllInfo *info)
     REG_FUNC(crio_filter_make);
     REG_FUNC(crio_filter_free);
     REG_FUNC(crio_combine_filters);
+    REG_FUNC(crio_current_file);
 }
 
 static void crio_filter_xp_free(SEXP xp)
@@ -119,6 +121,13 @@ const char * crio_errmsg_xp(SEXP xp)
 {
     struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     return crio_errmsg(csxp->stream);
+}
+
+void *
+crio_context_from_xp(SEXP xp)
+{
+    struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
+    return csxp->stream->ctx;
 }
 
 

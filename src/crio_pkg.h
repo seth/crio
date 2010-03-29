@@ -61,5 +61,10 @@ const char *
 crio_errmsg_xp(
     SEXP xp);
 
+/* Returns a pointer to the void * representing the stream context
+   contained in the specified crio stream object.  */
+void *
+crio_context_from_xp(
+    SEXP xp);
 
 #endif  /* CRIO_PKG_H_ */

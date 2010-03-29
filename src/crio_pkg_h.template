@@ -38,5 +38,8 @@
 /* Get the error message last set on the crio stream */
 <%= declare("crio_errmsg_xp") %>
 
+/* Returns a pointer to the void * representing the stream context
+   contained in the specified crio stream object.  */
+<%= declare("crio_context_from_xp")%>
 
 #endif  /* CRIO_PKG_H_ */

@@ -80,6 +80,12 @@ API = [
        },
 
        {
+         :name => "crio_context_from_xp",
+         :return => "void *",
+         :args => ["SEXP xp"]
+       },
+
+       {
          :name => "crio_stream_make",
          :return => "struct crio_stream *",
          :args => ["int (*read)(struct crio_stream *stream)",
@@ -145,6 +151,12 @@ API = [
        {
          :name => "crio_errmsg",
          :return => "const char *",
+         :args => ["struct crio_stream *stream"]
+       },
+
+       {
+         :name => "crio_current_file",
+         :return => "void *",
          :args => ["struct crio_stream *stream"]
        }
       ]

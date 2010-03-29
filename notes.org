@@ -40,6 +40,8 @@ use.
 - [ ] Add fun NOT
 - [ ] Add constants for list NIL and funs AND, OR, NOT
 - [ ] Cleanup empty list concept and cons'ing w/ NULL
+* TODO Add accessor for file pointer to pure crio API
+* TODO Add accessor for context to *_xp API
 ** Memory model
 Consider implementing a simple memory pool for list cells and nodes.
 This could simplify the handling of out of memory situations and also

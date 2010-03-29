@@ -156,3 +156,9 @@ const char * crio_errmsg(struct crio_stream *stream)
 {
     return (const char *)stream->error_message;
 }
+
+void *
+crio_current_file(struct crio_stream *stream)
+{
+    return stream->file;
+}
