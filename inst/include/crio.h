@@ -10,7 +10,7 @@
 struct crio_stream *
 crio_stream_make(
     int (*read)(struct crio_stream *stream),
-    void *fh,
+    void *file,
     const char *filename,
     void *ctx,
     CrioNode filter);
@@ -30,7 +30,7 @@ crio_stream_free(
 struct crio_stream *
 crio_reset_file(
     struct crio_stream *stream,
-    void *fh,
+    void *file,
     const char *filename);
 
 /* Create a new crio filter.

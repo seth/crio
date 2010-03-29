@@ -17,11 +17,11 @@ INFP(SEXP,
 
 INFP(SEXP,
      crio_stream_make_xp,
-     (int (*read)(struct crio_stream *stream), void *fh, const char *filename, void *ctx, SEXP expr, SEXP rho));
+     (int (*read)(struct crio_stream *stream), void *file, const char *filename, void *ctx, SEXP expr, SEXP rho));
 
 INFP(SEXP,
      crio_reset_file_xp,
-     (SEXP xp, void *fh, const char *filename));
+     (SEXP xp, void *file, const char *filename));
 
 INFP(int,
      crio_next_xp,
@@ -37,7 +37,7 @@ INFP(const char *,
 
 INFP(struct crio_stream *,
      crio_stream_make,
-     (int (*read)(struct crio_stream *stream), void *fh, const char *filename, void *ctx, CrioNode filter));
+     (int (*read)(struct crio_stream *stream), void *file, const char *filename, void *ctx, CrioNode filter));
 
 INFP(void,
      crio_stream_free,
@@ -45,7 +45,7 @@ INFP(void,
 
 INFP(struct crio_stream *,
      crio_reset_file,
-     (struct crio_stream *stream, void *fh, const char *filename));
+     (struct crio_stream *stream, void *file, const char *filename));
 
 INFP(struct crio_filter *,
      crio_filter_make,
@@ -85,11 +85,11 @@ void crio_initialize_stubs()
 
     MKFP(SEXP,
          crio_stream_make_xp,
-         (int (*read)(struct crio_stream *stream), void *fh, const char *filename, void *ctx, SEXP expr, SEXP rho));
+         (int (*read)(struct crio_stream *stream), void *file, const char *filename, void *ctx, SEXP expr, SEXP rho));
 
     MKFP(SEXP,
          crio_reset_file_xp,
-         (SEXP xp, void *fh, const char *filename));
+         (SEXP xp, void *file, const char *filename));
 
     MKFP(int,
          crio_next_xp,
@@ -105,7 +105,7 @@ void crio_initialize_stubs()
 
     MKFP(struct crio_stream *,
          crio_stream_make,
-         (int (*read)(struct crio_stream *stream), void *fh, const char *filename, void *ctx, CrioNode filter));
+         (int (*read)(struct crio_stream *stream), void *file, const char *filename, void *ctx, CrioNode filter));
 
     MKFP(void,
          crio_stream_free,
@@ -113,7 +113,7 @@ void crio_initialize_stubs()
 
     MKFP(struct crio_stream *,
          crio_reset_file,
-         (struct crio_stream *stream, void *fh, const char *filename));
+         (struct crio_stream *stream, void *file, const char *filename));
 
     MKFP(struct crio_filter *,
          crio_filter_make,

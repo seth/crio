@@ -65,7 +65,7 @@ static void crio_stream_xp_free(SEXP xp)
 }
 
 SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
-                         void *fh,
+                         void *file,
                          const char *filename,
                          void *ctx,
                          SEXP expr,
@@ -80,7 +80,7 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
     pool = crio_mpool_make(pool_size);
     csxp->pool = pool;
     crio_set_global_mem_pool(pool);
-    csxp->stream = crio_stream_make(read, fh, filename, ctx,
+    csxp->stream = crio_stream_make(read, file, filename, ctx,
                                     _crio_R_to_ast(expr, rho));
     PROTECT(xp = R_MakeExternalPtr(csxp, mkString("crio_stream"),
                                    R_NilValue));
@@ -90,10 +90,10 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
     
 }
 
-SEXP crio_reset_file_xp(SEXP xp, void *fh, const char *filename)
+SEXP crio_reset_file_xp(SEXP xp, void *file, const char *filename)
 {
     struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
-    csxp->stream = crio_reset_file(csxp->stream, fh, filename);
+    csxp->stream = crio_reset_file(csxp->stream, file, filename);
     return xp;
 }
 

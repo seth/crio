@@ -46,7 +46,7 @@ API = [
          :name => "crio_stream_make_xp",
          :return => "SEXP",
          :args => ["int (*read)(struct crio_stream *stream)",
-                   "void *fh",
+                   "void *file",
                    "const char *filename",
                    "void *ctx",
                    "SEXP expr",
@@ -57,7 +57,7 @@ API = [
          :name => "crio_reset_file_xp",
          :return => "SEXP",
          :args => ["SEXP xp",
-                   "void *fh",
+                   "void *file",
                    "const char *filename"]
        },
 
@@ -83,7 +83,7 @@ API = [
          :name => "crio_stream_make",
          :return => "struct crio_stream *",
          :args => ["int (*read)(struct crio_stream *stream)",
-                   "void *fh",
+                   "void *file",
                    "const char *filename",
                    "void *ctx",
                    "CrioNode filter"]
@@ -99,7 +99,7 @@ API = [
          :name => "crio_reset_file",
          :return => "struct crio_stream *",
          :args => ["struct crio_stream *stream",
-                   "void *fh",
+                   "void *file",
                    "const char *filename"]
        },
 

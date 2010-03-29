@@ -31,7 +31,7 @@ crio_filter_make_xp(
 SEXP
 crio_stream_make_xp(
     int (*read)(struct crio_stream *stream),
-    void *fh,
+    void *file,
     const char *filename,
     void *ctx,
     SEXP expr,
@@ -41,7 +41,7 @@ crio_stream_make_xp(
 SEXP
 crio_reset_file_xp(
     SEXP xp,
-    void *fh,
+    void *file,
     const char *filename);
 
 /* Read from stream until a record passes filters or EOF */
