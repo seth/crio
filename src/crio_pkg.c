@@ -32,6 +32,7 @@ void R_init_crio(DllInfo *info)
 
     REG_FUNC(crio_filter_make);
     REG_FUNC(crio_filter_free);
+    REG_FUNC(crio_combine_filters);
 }
 
 static void crio_filter_xp_free(SEXP xp)
