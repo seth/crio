@@ -22,6 +22,7 @@ z.r <- filter_file.r(tf, "(a|c)")
 stopifnot(all.equal(z, z.r))
 length(z)
 
+gc()
 
 
 
