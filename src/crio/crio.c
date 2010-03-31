@@ -108,19 +108,42 @@ CrioNode crio_combine_filters(int n, ...)
     return crio_mknode_list(crio_cons(crio_mknode_fun_and(), list));
 }
 
-int crio_next(struct crio_stream *stream)
+int crio_list_length(CrioList *list);
+
+int crio_next_with_pool(struct crio_stream *stream, struct _crio_mpool *pool)
 {
-    int res, fres = CRIO_FILT_PASS;
+    int res, fres = CRIO_FILT_PASS, new_pool = pool ? 0 : 1;
+    struct _crio_mpool *prev_pool = NULL;
+    size_t mark;
     CrioList *filter_ast = stream->filter ? CRIO_LIST(stream->filter) : NULL;
+    if (filter_ast && new_pool) {
+        int len = crio_list_length(filter_ast);
+        size_t pool_size = sizeof(struct _crio_node) * len * 4;
+        if (pool_size < 256) pool_size = 256;
+        pool = crio_mpool_make(pool_size);
+        prev_pool = crio_get_global_mem_pool();
+        crio_set_global_mem_pool(pool);
+    }
     while (++(stream->nread) && CRIO_OK == (res = stream->read(stream))) {
         if (filter_ast) {
+            mark = crio_mpool_mark(pool);
             fres = CRIO_VALUE(_crio_eval(filter_ast, stream));
+            crio_mpool_drain_to_mark(pool, mark);
         }
         /* filter pass or error */
         if (CRIO_FILT_PASS == fres || CRIO_FILT_FAIL != fres) break;
     }
     res == CRIO_EOF ? stream->nread-- : stream->nfiltered++;
+    if (filter_ast && new_pool) {
+        crio_set_global_mem_pool(prev_pool);
+        crio_mpool_free(pool);
+    }
     return fres == CRIO_ERR ? fres : res;
+}
+
+int crio_next(struct crio_stream *stream)
+{
+    return crio_next_with_pool(stream, NULL);
 }
 
 void crio_vset_errmsg(struct crio_stream *stream, const char *fmt, va_list ap)

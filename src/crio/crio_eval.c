@@ -10,6 +10,12 @@ void crio_set_global_mem_pool(struct _crio_mpool *pool)
     GLOBAL_MEM_POOL = pool;
 }
 
+struct _crio_mpool *
+crio_get_global_mem_pool()
+{
+    return GLOBAL_MEM_POOL;
+}
+
 static void *
 xmalloc(size_t s)
 {
@@ -140,6 +146,19 @@ crio_cons(CrioNode node, CrioList *list)
     e->node = (CrioNode )node;
     e->next = head;
     return e;
+}
+
+int crio_list_length(CrioList *list)
+{
+    int len = 0;
+    CrioList *h = list;
+    if (list) {
+        while (!CRIO_IS_NIL(h)) {
+            len++;
+            h = CRIO_CDR(h);
+        }
+    }
+    return len;
 }
 
 static void free_nodes_in_list(CrioList *list)

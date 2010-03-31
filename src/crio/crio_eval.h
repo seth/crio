@@ -44,6 +44,8 @@ struct _crio_node {
 #define CRIO_IS_NIL(x) (!CRIO_CAR(x) && !CRIO_CDR(x))
 
 void crio_set_global_mem_pool(struct _crio_mpool *pool);
+struct _crio_mpool * crio_get_global_mem_pool();
+
 
 CrioList *crio_cons(CrioNode node, CrioList *list);
 void crio_list_free(CrioList *list, int keep_nodes);

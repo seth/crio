@@ -99,11 +99,16 @@ SEXP crio_reset_file_xp(SEXP xp, void *file, const char *filename)
     return xp;
 }
 
+/* FIXME: this belongs in a private header, would be nice to avoid
+   exposing struct _crio_mpool to the public crio API.
+ */
+int crio_next_with_pool(struct crio_stream *stream, struct _crio_mpool *pool);
+
 int crio_next_xp(SEXP xp)
 {
     struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     size_t mark = crio_mpool_mark(csxp->pool);
-    int ret = crio_next(csxp->stream);
+    int ret = crio_next_with_pool(csxp->stream, csxp->pool);
     crio_mpool_drain_to_mark(csxp->pool, mark);
     return ret;
 }

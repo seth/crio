@@ -38,4 +38,15 @@ writeLines(data_lines, con = tf)
 
 stuff <- read_demo(tf, "a | b", filters)
 file.remove(tf)
+
+## behavior if nothing passes filter
+tf <- tempfile()
+writeLines(rep("b", 20), tf)
+filters <- list(a=substr_filter("a"))
+read_demo(tf, "a", filters)
+file.remove(tf)
+
+## force gc to test finalizers
+gc()
+
 }
