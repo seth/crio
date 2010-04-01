@@ -23,7 +23,7 @@ struct _crio_node {
     union {
         struct crio_filter *filter;
         int boolean;
-        int (*fun)(struct _crio_list *);
+        int (*fun)(struct _crio_list *, struct crio_stream *);
         CrioList *list;
     } value;
 };
@@ -57,7 +57,7 @@ void crio_print_list(CrioList *list);
 
 CrioNode crio_mknode_int(int v);
 
-CrioNode crio_mknode_fun(int (*fun)(CrioList *));
+CrioNode crio_mknode_fun(int (*fun)(CrioList *, struct crio_stream *));
 
 CrioNode
 crio_mknode_filter(struct crio_filter *filter);

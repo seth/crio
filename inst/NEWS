@@ -13,6 +13,10 @@ Version 0.0.4
 
 - Added a simple memory pool to manage crio list and node allocation.
 
+- crio logic functions 'and' and 'or' now evaluate arguments in the
+  expected order, handle errors in filters, and have short-circuit
+  logic.  With this change is the assumption that all crio funs
+  evaluate their arguments if needed.
 
 Version 0.0.3
 

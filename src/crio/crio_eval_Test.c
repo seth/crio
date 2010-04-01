@@ -30,7 +30,7 @@ static int has_k_filter(struct crio_stream *stream, void *fctx)
     return res;
 }
 
-static int op_fun(CrioList *list) {
+static int op_fun(CrioList *list, struct crio_stream *stream) {
     return 1;
 }
 
@@ -87,19 +87,22 @@ void Test_ast_fun_AND_error_propagation(CuTest *tc)
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
     crio_list_free(list, 1);
 
+    /* short-circuit prevents error */
     list = crio_cons(fun_and, crio_cons(n0, crio_cons(nErr, NULL)));
+    ans = _crio_eval(list, NULL);
+    CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
+    crio_list_free(list, 1);
+
+    list = crio_cons(fun_and, crio_cons(nErr, crio_cons(n0, NULL)));
     ans = _crio_eval(list, NULL);
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
     crio_list_free(list, 1);
 
-    /* FIXME: if we would short-circuit properly, this would return
-       false instead of error.  Also evaluation order is backwards.
-     */
     list = crio_cons(fun_and,
                      crio_cons(n0,
                                crio_cons(n1, crio_cons(nErr, NULL))));
     ans = _crio_eval(list, NULL);
-    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
     crio_list_free(list, 0);
 }
 
@@ -117,9 +120,10 @@ void Test_ast_fun_OR_error_propagation(CuTest *tc)
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
     crio_list_free(list, 1);
 
+    /* short-circuit prevents error */
     list = crio_cons(fun_or, crio_cons(n1, crio_cons(nErr, NULL)));
     ans = _crio_eval(list, NULL);
-    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
     crio_list_free(list, 1);
 
     list = crio_cons(fun_or, crio_cons(n0, crio_cons(nErr, NULL)));
@@ -127,14 +131,11 @@ void Test_ast_fun_OR_error_propagation(CuTest *tc)
     CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
     crio_list_free(list, 1);
 
-    /* FIXME: if we would short-circuit properly, this would return
-       false instead of error.  Also evaluation order is backwards.
-     */
     list = crio_cons(fun_or,
                      crio_cons(n0,
                                crio_cons(n1, crio_cons(nErr, NULL))));
     ans = _crio_eval(list, NULL);
-    CuAssertIntEquals(tc, CRIO_ERR, CRIO_VALUE(ans));
+    CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
     crio_list_free(list, 0);
 }
 
