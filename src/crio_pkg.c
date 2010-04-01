@@ -76,7 +76,7 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
     SEXP xp;
     struct _crio_mpool *pool;
     struct stream_pair *csxp = Calloc(1, struct stream_pair);
-    size_t pool_size = sizeof(struct _crio_node) * length(expr) * 10;
+    size_t pool_size = length(expr) * 4;
     if (pool_size < 256) pool_size = 256;
     crio_mpool_init(NULL, NULL, Rf_error);
     pool = crio_mpool_make(pool_size);

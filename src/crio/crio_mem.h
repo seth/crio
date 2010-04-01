@@ -17,7 +17,10 @@ crio_mpool_init(
     void (*panic)(const char *, ...));
 
 struct _crio_mpool *
-crio_mpool_make(size_t init_size);
+crio_mpool_make0(size_t init_size);
+
+struct _crio_mpool *
+crio_mpool_make(size_t num_nodes);
 
 size_t
 crio_mpool_mark(struct _crio_mpool *pool);

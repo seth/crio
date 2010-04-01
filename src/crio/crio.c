@@ -120,7 +120,7 @@ int crio_next_with_pool(struct crio_stream *stream, struct _crio_mpool *pool)
         int len = crio_list_length(filter_ast);
         size_t pool_size = sizeof(struct _crio_node) * len * 4;
         if (pool_size < 256) pool_size = 256;
-        pool = crio_mpool_make(pool_size);
+        pool = crio_mpool_make0(pool_size);
         prev_pool = crio_get_global_mem_pool();
         crio_set_global_mem_pool(pool);
     }

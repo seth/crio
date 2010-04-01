@@ -37,7 +37,7 @@ static int op_fun(CrioList *list) {
 void Test_node_making(CuTest *tc)
 {
     CrioList *list = NULL;
-    struct _crio_mpool *pool = crio_mpool_make(sizeof(char) * 1024);
+    struct _crio_mpool *pool = crio_mpool_make0(sizeof(char) * 1024);
     crio_set_global_mem_pool(pool);
     CrioNode n = crio_mknode_int(5);
     list = crio_cons(n, list);

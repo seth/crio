@@ -1,6 +1,7 @@
 #include "crio_mem.h"
 #include <err.h>
 #include <stdarg.h>
+#include "crio_eval.h"          /* for struct _crio_node */
 
 static void
 crio_panic(const char *fmt, ...)
@@ -32,14 +33,20 @@ crio_mpool_init(
 }
 
 struct _crio_mpool *
-crio_mpool_make(size_t init_size)
+crio_mpool_make(size_t num_nodes)
+{
+    return crio_mpool_make0(sizeof(struct _crio_node) * num_nodes);
+}
+
+struct _crio_mpool *
+crio_mpool_make0(size_t init_size)
 {
     struct _crio_mpool *pool = _allocator(sizeof(struct _crio_mpool));
-    if (!pool) _panic("crio_mpool_make: no memory");
+    if (!pool) _panic("crio_mpool_make0: no memory");
     pool->size = init_size;
     pool->data = _allocator(init_size);
     if (!pool->data)
-        _panic("crio_mpool_make: no memory for pool (%d)", init_size);
+        _panic("crio_mpool_make0: no memory for pool (%d)", init_size);
     pool->used = 0;
     pool->next = NULL;
     return pool;
