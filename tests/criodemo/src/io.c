@@ -24,6 +24,23 @@ SEXP _make_strstr_filter(SEXP ctx)
                                ctx);
 }
 
+static int dummy_filter(struct crio_stream *stream, void *fctx)
+{
+    int pass = LOGICAL((SEXP)fctx)[0];
+    return pass ? CRIO_FILT_PASS : CRIO_FILT_FAIL;
+}
+
+SEXP _make_dummy_filter(SEXP ctx)
+{
+    int v;
+    if (!Rf_isLogical(ctx)) {
+        Rf_error("dummy filter context must be a logical vector");
+    }
+    v = LOGICAL(ctx)[0];
+    return crio_filter_make_xp(v ? "dummy_TRUE" : "dummy_FALSE",
+                               dummy_filter, ctx);
+}
+
 static int line_reader(struct crio_stream *stream)
 {
     FILE *file = (FILE *)stream->file;
