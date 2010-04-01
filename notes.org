@@ -29,14 +29,13 @@ use.
   CLOSED: [2010-03-23 Tue 15:05]
 ** Refactor template code
 ** Add function pointer decl to stubs
-* TODO crio AST evaluation [2/7]
+* TODO crio AST evaluation [3/7]
 - [X] Refactor API for setting filter AST on stream creation ecify a
       CrioNode* when creating a stream that is a list node inting to
       the root of the AST.  stream is responsible for this mory.
       Helper function for single filter case.
 - [X] R parsed expression => crio AST
-- [ ] Modify eval for short-cicuit for AND/OR
-- [ ] Build up arg list by appending to tail (correct order)
+- [X] Modify eval for short-cicuit for AND/OR
 - [ ] Add fun NOT
 - [ ] Add constants for list NIL and funs AND, OR, NOT
 - [ ] Cleanup empty list concept and cons'ing w/ NULL
