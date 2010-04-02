@@ -18,6 +18,8 @@ Version 0.0.4
   logic.  With this change is the assumption that all crio funs
   evaluate their arguments if needed.
 
+- crio now supports a logical 'not' operator "!".
+
 Version 0.0.3
 
 - crio_set_errmsg now provides an sprintf-style interface

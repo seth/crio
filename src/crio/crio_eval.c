@@ -28,6 +28,7 @@ xmalloc(size_t s)
 
 static int crio_fun_and(CrioList *args, struct crio_stream *stream);
 static int crio_fun_or(CrioList *args, struct crio_stream *stream);
+static int crio_fun_not(CrioList *args, struct crio_stream *stream);
 
 char *crio_type_names[3] = {"CRIO_INT_T",
                             "CRIO_FILTER_T",
@@ -35,6 +36,10 @@ char *crio_type_names[3] = {"CRIO_INT_T",
 
 CrioList _LIST_NIL = {NULL, NULL};
 CrioList *LIST_NIL = &_LIST_NIL;
+
+struct _crio_node FUN_NODE_AND = {CRIO_FUN_T, {crio_fun_and}};
+struct _crio_node FUN_NODE_OR = {CRIO_FUN_T, {crio_fun_or}};
+struct _crio_node FUN_NODE_NOT = {CRIO_FUN_T, {crio_fun_not}};
 
 #define P2I(v) (intptr_t)v & 0xffffffff
 
@@ -129,20 +134,10 @@ crio_mknode_list(CrioList *list)
 CrioList *
 crio_cons(CrioNode node, CrioList *list)
 {
-    int alloced_head = 0;
     CrioList *head = list;
-    if (!list) {
-        head = xmalloc(sizeof(CrioList));
-        if (!head) return NULL;
-        alloced_head = 1;
-        head->next = NULL;
-        head->node = NULL;
-    }
+    if (!list) head = LIST_NIL;
     CrioList *e = xmalloc(sizeof(CrioList));
-    if (!e) {
-        if (alloced_head) free(head);
-        return NULL;
-    }
+    if (!e) return NULL;
     e->node = (CrioNode )node;
     e->next = head;
     return e;
@@ -164,9 +159,11 @@ int crio_list_length(CrioList *list)
 static void free_nodes_in_list(CrioList *list)
 {
     CrioList *h = list;
+    CrioNode n;
     if (list) {
         while (!CRIO_IS_NIL(h)) {
-            if (CRIO_CAR(h)) {
+            n = CRIO_CAR(h);
+            if (n && (n != &FUN_NODE_OR) && (n != &FUN_NODE_AND)) {
                 free(CRIO_CAR(h));
                 CRIO_CAR(h) = NULL;
             }
@@ -185,7 +182,6 @@ void crio_list_free(CrioList *list, int keep_nodes)
             free(h);
             h = tmp;
         }
-        if (h) free(h);
         list = NULL;
     }
 }
@@ -228,8 +224,6 @@ crio_eval_fun(CrioNode e, CrioList *args, struct crio_stream *stream)
     return node;
 }
 
-/* FIXME: eval order for _and and _or is backwards */
-
 static int crio_fun_and(CrioList *args, struct crio_stream *stream)
 {
     CrioList *a = args;
@@ -249,9 +243,6 @@ static int crio_fun_and(CrioList *args, struct crio_stream *stream)
 
 static int crio_fun_or(CrioList *args, struct crio_stream *stream)
 {
-    /* for now, assume args are already evaluated
-       and are valid CRIO_INT_T nodes.
-     */
     CrioList *a = args;
     CrioNode n;
     int ans = 0;
@@ -267,14 +258,33 @@ static int crio_fun_or(CrioList *args, struct crio_stream *stream)
     return ans;
 }
 
+static int crio_fun_not(CrioList *args, struct crio_stream *stream)
+{
+    CrioNode n;
+    int ans = CRIO_ERR;
+    if (!CRIO_IS_NIL(args)) {
+        n = CRIO_CAR(args);
+        if (!IS_CRIO_INT_T(n))
+            n = _crio_eval(crio_cons(n, NULL), stream);
+        if (CRIO_ERR == CRIO_VALUE(n)) return CRIO_VALUE(n);
+        ans = CRIO_VALUE(n) ? 0 : 1;
+    }
+    return ans;
+}
+
 CrioNode  crio_mknode_fun_and()
 {
-    return crio_mknode_fun(crio_fun_and);
+    return &FUN_NODE_AND;
 }
 
 CrioNode  crio_mknode_fun_or()
 {
-    return crio_mknode_fun(crio_fun_or);
+    return &FUN_NODE_OR;
+}
+
+CrioNode crio_mknode_fun_not()
+{
+    return &FUN_NODE_NOT;
 }
 
 CrioNode

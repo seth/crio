@@ -181,7 +181,6 @@ void Test_ast_fun_AND_eval_simple(CuTest *tc)
     free(ans);
     free(n1);
     free(n0);
-    free(fun_and);
 }
 
 void Test_ast_fun_OR_eval_simple(CuTest *tc)
@@ -226,7 +225,6 @@ void Test_ast_fun_OR_eval_simple(CuTest *tc)
     free(ans);
     free(n1);
     free(n0);
-    free(fun_or);
 }
 
 void Test_ast_filter_eval_simple(CuTest *tc)
@@ -322,6 +320,44 @@ void Test_ast_filter_eval_compound1(CuTest *tc)
     crio_list_free(list, 0);
 }
 
+void Test_crio_not_fun(CuTest *tc)
+{
+    CrioList *expr;
+    CrioNode ans, n1, n0;
+    struct _crio_mpool *pool = crio_mpool_make(256);
+    size_t mark;
+    crio_set_global_mem_pool(pool);
 
+    /* !1 => 0 */
+    mark = crio_mpool_mark(pool);
+    expr = crio_cons(crio_mknode_fun_not(),
+                     crio_cons(crio_mknode_int(1), NULL));
+    ans = _crio_eval(expr, NULL);
+    CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
+    crio_mpool_drain_to_mark(pool, mark);
 
+    /* !0 => 1 */
+    mark = crio_mpool_mark(pool);
+    expr = crio_cons(crio_mknode_fun_not(),
+                     crio_cons(crio_mknode_int(0), NULL));
+    ans = _crio_eval(expr, NULL);
+    CuAssertIntEquals(tc, 1, CRIO_VALUE(ans));
+    crio_mpool_drain_to_mark(pool, mark);
 
+    /* TODO: test not for evaluation of simple arg */
+    /* TODO: test !(1 & (1 | 0)) */
+    mark = crio_mpool_mark(pool);
+    expr = crio_cons(crio_mknode_fun_or(),
+                     crio_cons(crio_mknode_int(0),
+                               crio_cons(crio_mknode_int(1), NULL)));
+    expr = crio_cons(crio_mknode_fun_not(),
+                     crio_cons(crio_mknode_fun_and(),
+                               crio_cons(crio_mknode_int(1), expr)));
+    ans = _crio_eval(expr, NULL);
+    CuAssertIntEquals(tc, 0, CRIO_VALUE(ans));
+    crio_mpool_drain_to_mark(pool, mark);
+
+    /* clean up */
+    crio_set_global_mem_pool(NULL);
+    crio_mpool_free(pool);
+}

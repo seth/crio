@@ -66,8 +66,8 @@ static CrioNode _sym2CrioNode(SEXP s, SEXP rho)
         node = crio_mknode_fun_and();
     } else if (name_match(s, "|")) {
         node = crio_mknode_fun_or();
-    /* } else if (name_match(s, "(")) { */
-        
+    } else if (name_match(s, "!")) {
+        node = crio_mknode_fun_not();
     } else {
         SEXP xp = Rf_findVarInFrame(rho, s);
         /* FIXME: error handling for v not found in rho */

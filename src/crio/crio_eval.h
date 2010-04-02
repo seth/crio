@@ -21,9 +21,9 @@ typedef struct _crio_list {
 struct _crio_node {
     enum crio_types type;
     union {
+        int (*fun)(struct _crio_list *, struct crio_stream *);
         struct crio_filter *filter;
         int boolean;
-        int (*fun)(struct _crio_list *, struct crio_stream *);
         CrioList *list;
     } value;
 };
@@ -41,7 +41,9 @@ struct _crio_node {
 
 #define CRIO_CAR(x) (x)->node
 #define CRIO_CDR(x) (x)->next
-#define CRIO_IS_NIL(x) (!CRIO_CAR(x) && !CRIO_CDR(x))
+
+extern CrioList *LIST_NIL;
+#define CRIO_IS_NIL(x) (((x) == LIST_NIL))
 
 void crio_set_global_mem_pool(struct _crio_mpool *pool);
 struct _crio_mpool * crio_get_global_mem_pool();
@@ -67,6 +69,7 @@ crio_mknode_list(CrioList *list);
 
 CrioNode crio_mknode_fun_and();
 CrioNode crio_mknode_fun_or();
+CrioNode crio_mknode_fun_not();
 
 CrioList *
 crio_cons(CrioNode node, CrioList *list);
