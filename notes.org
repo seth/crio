@@ -25,6 +25,19 @@ f1, f2, f3, and f4 each mapping to an external pointer as returned by
 use.
 
 
+* TODO Handle missing filters in R environment error
+User could specify bad arguments and we should report a useful error
+message.
+* TODO Need safety mechanism to ensure filter's match context
+The filters assume a particular context structure.  If filters are
+shared across packages, one could easily create a situation where a
+user specifies incompatible filters for the context supplied by a read
+function.  If we want to avoid this, we need some mechanism to
+identify the type associated with a context and attach that label to
+filter functions.
+* TODO Measure some real-world uses to validate approach
+* TODO Add name validator for crio filter functions
+Make sure filter names are valid R identifiers.  Backticks allowed?
 * DONE external pointer API
   CLOSED: [2010-03-23 Tue 15:05]
 ** Refactor template code
@@ -52,3 +65,6 @@ Consider implementing a simple memory pool for list cells and nodes.
 This could simplify the handling of out of memory situations and also
 improve efficiency by avoiding repeated small calls to malloc when
 evaluating the AST in the read loop.
+
+
+
