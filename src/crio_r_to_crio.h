@@ -5,6 +5,6 @@
 #include "crio/crio.h"
 
 
-CrioNode _crio_R_to_ast(SEXP e, SEXP rho);
+int _crio_R_to_ast(SEXP e, SEXP rho, CrioNode *out_node, char **errmsg);
 
 #endif  /* CRIO_R_TO_CRIO_H_ */

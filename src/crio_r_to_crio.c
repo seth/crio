@@ -6,8 +6,6 @@
 #include "crio/crio_eval.h"
 #include "crio_pkg.h"
 
-/* findVarInFrame */
-
 #define SYMCHAR(X) (CHAR(PRINTNAME((X))))
 
 static int alpha_filter(struct crio_stream *stream, void *fctx)
@@ -55,7 +53,7 @@ static int name_match(SEXP v, const char *name)
     return strcmp(SYMCHAR(v), name) == 0;
 }
 
-static CrioNode _sym2CrioNode(SEXP s, SEXP rho)
+static CrioNode _sym2CrioNode(SEXP s, SEXP rho, char **errmsg)
 {
     CrioNode node = NULL;
 
@@ -70,7 +68,12 @@ static CrioNode _sym2CrioNode(SEXP s, SEXP rho)
         node = crio_mknode_fun_not();
     } else {
         SEXP xp = Rf_findVarInFrame(rho, s);
-        /* FIXME: error handling for v not found in rho */
+        if (TYPEOF(xp) != EXTPTRSXP) {
+            *errmsg = (char *)R_alloc(sizeof(char), 256);
+            snprintf(*errmsg, 256, "invalid or missing binding for '%s' "
+                     "in specified environment", SYMCHAR(s));
+            return NULL;
+        }
         struct crio_filter *cf = (struct crio_filter *)R_ExternalPtrAddr(xp);
         node = crio_mknode_filter(cf);
     }
@@ -84,12 +87,24 @@ static CrioNode _sym2CrioNode(SEXP s, SEXP rho)
   #define DEBUG_AST(x, y)
 #endif
 
-/* Return a CrioNode of type CRIO_LIST_T */
-CrioNode
-_crio_R_to_ast(SEXP e, SEXP rho)
+/* Build a crio AST from the R expression in e.  Symbols are resolved
+ * in the environment rho and are expected to be bound to external
+ * pointers representing crio filters.  The resulting AST is stored in
+ * out as a CrioNode of list type.
+ *
+ * Returns 0 if successful.  A return value of 1 indicates an error
+ * occured in building the AST.  In this case, an error message is
+ * available in errmsg.
+ *
+ */
+int
+_crio_R_to_ast(SEXP e, SEXP rho, CrioNode *out, char **errmsg)
 {
-    CrioNode tn1, tn2;
-    if (e == R_NilValue) return NULL;
+    CrioNode tn1, tn2, tmp;
+    if (e == R_NilValue) {
+        *out = NULL;
+        return 0;
+    }
     switch (TYPEOF(e)) {
     case LANGSXP:
     case LISTSXP:
@@ -97,42 +112,52 @@ _crio_R_to_ast(SEXP e, SEXP rho)
         case SYMSXP:
             DEBUG_AST("SYMSXP: %s\n", SYMCHAR(CAR(e)));
             if (name_match(CAR(e), "(")) {
-                return _crio_R_to_ast(CAR(CDR(e)), rho);
+                return _crio_R_to_ast(CAR(CDR(e)), rho, out, errmsg);
             }
-            tn1 = _crio_R_to_ast(CDR(e), rho);
-            return crio_mknode_list(
-                crio_cons(_sym2CrioNode(CAR(e), rho),
-                          tn1 ? CRIO_LIST(tn1) : NULL));
+            if (_crio_R_to_ast(CDR(e), rho, &tn1, errmsg)) return 1;
+            if (NULL == (tmp = _sym2CrioNode(CAR(e), rho, errmsg)))
+                return 1;
+            *out = crio_mknode_list(crio_cons(tmp,
+                                              tn1 ? CRIO_LIST(tn1) : NULL));
+            break;
         case LANGSXP:
         case LISTSXP:
             DEBUG_AST("LANGSXP/LISTSXP, double recurse %d\n", 1);
-            tn1 = _crio_R_to_ast(CAR(e), rho);
-            tn2 = _crio_R_to_ast(CDR(e), rho);
-            return crio_mknode_list(crio_cons(tn1,
+            if (_crio_R_to_ast(CAR(e), rho, &tn1, errmsg)) return 1;
+            if (_crio_R_to_ast(CDR(e), rho, &tn2, errmsg)) return 1;
+            *out = crio_mknode_list(crio_cons(tn1,
                                               tn2 ? CRIO_LIST(tn2) : NULL));
+            break;
         }
+        break;
     case SYMSXP:
         DEBUG_AST("bare SYMSXP: %s\n", SYMCHAR(e));
-        return crio_mknode_list(crio_cons(_sym2CrioNode(e, rho), NULL));
+        if (NULL == (tmp = _sym2CrioNode(e, rho, errmsg)))
+            return 1;
+        *out = crio_mknode_list(crio_cons(tmp, NULL));
+        break;
     default:
         error("unhandled SEXP type in _crio_R_to_ast: %s",
               Rf_type2char(TYPEOF(e)));
     }
-    return NULL;                /* -Wall */
+    return 0;
 }
 
 void crio_print_list(CrioList *);
 
 SEXP crio_build_ast(SEXP expr, SEXP rho)
 {
-    CrioList *list = CRIO_LIST(_crio_R_to_ast(expr, rho));
-    crio_print_list(list);
+    CrioNode n;
+    _crio_R_to_ast(expr, rho, &n, NULL);
+    crio_print_list(CRIO_LIST(n));
     return ScalarLogical(1);
 }
 
 SEXP crio_build_and_eval_ast(SEXP expr, SEXP rho, SEXP _ctx)
 {
-    CrioList *list = CRIO_LIST(_crio_R_to_ast(expr, rho));
+    CrioNode n;
+    _crio_R_to_ast(expr, rho, &n, NULL);
+    CrioList *list = CRIO_LIST(n);
     void *ctx = (void *)CHAR(STRING_ELT(_ctx, 0));
     struct crio_stream *stream = crio_stream_make(NULL, NULL,
                                                   "test stream", ctx,

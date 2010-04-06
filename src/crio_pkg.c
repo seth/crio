@@ -77,13 +77,22 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
     struct _crio_mpool *pool;
     struct stream_pair *csxp = Calloc(1, struct stream_pair);
     size_t pool_size = length(expr) * 4;
+    char *errmsg = NULL;
+    CrioNode ast;
     if (pool_size < 256) pool_size = 256;
     crio_mpool_init(NULL, NULL, Rf_error);
     pool = crio_mpool_make(pool_size);
     csxp->pool = pool;
     crio_set_global_mem_pool(pool);
-    csxp->stream = crio_stream_make(read, file, filename, ctx,
-                                    _crio_R_to_ast(expr, rho));
+    if (_crio_R_to_ast(expr, rho, &ast, &errmsg)) {
+        Free(csxp);
+        crio_mpool_free(pool);
+        if (errmsg)
+            Rf_error("%s", errmsg);
+        else
+            Rf_error("unknown error in crio_stream_make_xp");
+    }
+    csxp->stream = crio_stream_make(read, file, filename, ctx, ast);
     PROTECT(xp = R_MakeExternalPtr(csxp, mkString("crio_stream"),
                                    R_NilValue));
     R_RegisterCFinalizerEx(xp, crio_stream_xp_free, 0);
