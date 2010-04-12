@@ -50,6 +50,10 @@ SEXP crio_filter_make_xp(const char *name,
 {
     SEXP xp;
     struct crio_filter *cf = crio_filter_make(name, filter, filter_ctx, NULL);
+    /* FIXME: add "crio filter:" prefix to extptr tag here.  This will allow
+       for a fairly reliable means to ensure that a given extptr is indeed
+       a crio filter.
+     */
     PROTECT(xp = R_MakeExternalPtr(cf, mkString(name), filter_ctx));
     R_RegisterCFinalizerEx(xp, crio_filter_xp_free, 0);
     UNPROTECT(1);
