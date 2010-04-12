@@ -1,3 +1,7 @@
+## create a substring filter that selects records (here lines of text
+## from a file) that contain the substring specified in 's'.
+##
+## The return value is an external pointer wrapping a crio filter.
 substr_filter <-
 function(s)
 {
