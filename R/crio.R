@@ -10,7 +10,7 @@ strstr_filter <- function(s)
 
 build_ast <- function(expr, rho)
 {
-    invisible(.Call(crio_build_ast, expr, rho))
+    .Call(crio_build_ast, expr, rho)
 }
 
 eval_test <- function(expr, rho, ctx)

@@ -53,8 +53,8 @@ CrioList *crio_cons(CrioNode node, CrioList *list);
 void crio_list_free(CrioList *list, int keep_nodes);
 CrioList *crio_list_reverse(CrioList *list);
 
-void crio_print_node(CrioNode node);
-void crio_print_list(CrioList *list);
+int crio_node2str(CrioNode node, char *buf, size_t n);
+int crio_list2str(CrioList *list, char *buf, size_t n);
 
 
 CrioNode crio_mknode_int(int v);

@@ -43,52 +43,61 @@ struct _crio_node FUN_NODE_NOT = {CRIO_FUN_T, {crio_fun_not}};
 
 #define P2I(v) (intptr_t)v & 0xffffffff
 
-void crio_print_node(CrioNode node)
+int crio_node2str(CrioNode node, char *nbuf, size_t n)
 {
-    char name[50];
-    char buf[80];
+    int len = 0;
+    char name[50], buf[80];
     name[0] = 0;
-
     switch (CRIO_TYPE(node)) {
     case CRIO_INT_T:
-        snprintf(buf, sizeof(buf), "[INT (%d)]", CRIO_VALUE(node));
+        snprintf(buf, 80, "[INT (%d)]", CRIO_VALUE(node));
         break;
     case CRIO_FUN_T:
         if (CRIO_FUN(node) == &crio_fun_and)
             strncpy(name, "&", sizeof(name));
         else if (CRIO_FUN(node) == &crio_fun_or)
             strncpy(name, "|", sizeof(name));
-        snprintf(buf, sizeof(buf), "[FUN (%s) <%lx>]", name, P2I(CRIO_FUN(node)));
+        snprintf(buf, 80, "[FUN (%s)]", name);
         break;
     case CRIO_FILTER_T:
-        strncpy(name, CRIO_FILTER(node)->name, sizeof(name));
-        snprintf(buf, sizeof(buf), "[FILTER (%s) <%lx>]",
-                 CRIO_FILTER(node)->name, P2I(CRIO_FILTER(node)));
+        snprintf(buf, 80, "[FILTER (%s)]", CRIO_FILTER(node)->name);
         break;
     case CRIO_LIST_T:
-        crio_print_list(CRIO_LIST(node));
-        return;
+        return crio_list2str(CRIO_LIST(node), nbuf, n);
     default:
-        snprintf(buf, sizeof(buf), "[unknown: %d]", CRIO_TYPE(node));
+        snprintf(buf, 80, "[unknown: %d]", CRIO_TYPE(node));
         break;
     }
-    printf("%s", buf);
+    len = strlen(buf);
+    snprintf(nbuf, n, "%s", buf);
+    return len;
 }
 
-void crio_print_list(CrioList *list)
+int crio_list2str(CrioList *list, char *buf, size_t n)
 {
-    if (!list) {
-        printf("()\n");
-        return;
-    }
     CrioList *h = list;
-    printf("(");
-    while (1) {
-        crio_print_node(CRIO_CAR(h));
-        h = CRIO_CDR(h);
-        if (!CRIO_IS_NIL(h)) printf(", "); else break;
+    char *bufp = buf;
+    int len;
+
+    if (!list) {
+        snprintf(buf, n, "%s", "()");
+        return 3;
     }
-    printf(")\n");
+    snprintf(buf, n, "%s", "(");
+    len = 1;
+    bufp += len;
+    while (len < n - 1) {
+        len = crio_node2str(CRIO_CAR(h), bufp, n - len);
+        bufp += len;
+        h = CRIO_CDR(h);
+        if (!CRIO_IS_NIL(h)) {
+            snprintf(bufp, n - len, "%s", ", ");
+            bufp += 2;
+        }
+        else break;
+    }
+    snprintf(bufp, n, "%s", ")");
+    return strlen(buf);
 }
 
 CrioNode

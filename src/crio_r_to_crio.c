@@ -143,14 +143,15 @@ _crio_R_to_ast(SEXP e, SEXP rho, CrioNode *out, char **errmsg)
     return 0;
 }
 
-void crio_print_list(CrioList *);
+int crio_list2str(CrioList *, char *buf, size_t n);
 
 SEXP crio_build_ast(SEXP expr, SEXP rho)
 {
     CrioNode n;
     _crio_R_to_ast(expr, rho, &n, NULL);
-    crio_print_list(CRIO_LIST(n));
-    return ScalarLogical(1);
+    char *buf = (char *)R_alloc(256, sizeof(char));
+    crio_list2str(CRIO_LIST(n), buf, 256);
+    return mkString(buf);
 }
 
 SEXP crio_build_and_eval_ast(SEXP expr, SEXP rho, SEXP _ctx)
