@@ -5,6 +5,7 @@
 #include "crio_r_to_crio.h"
 #include "crio/crio_eval.h"
 #include "crio_pkg.h"
+#include "crio_util.h"
 
 #define SYMCHAR(X) (CHAR(PRINTNAME((X))))
 
@@ -68,7 +69,7 @@ static CrioNode _sym2CrioNode(SEXP s, SEXP rho, char **errmsg)
         node = crio_mknode_fun_not();
     } else {
         SEXP xp = Rf_findVarInFrame(rho, s);
-        if (TYPEOF(xp) != EXTPTRSXP) {
+        if (!crio_is_valid_xp(xp, CRIO_XP_FILTER_PREFIX)) {
             *errmsg = (char *)R_alloc(sizeof(char), 256);
             snprintf(*errmsg, 256, "invalid or missing binding for '%s' "
                      "in specified environment", SYMCHAR(s));

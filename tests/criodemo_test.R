@@ -24,6 +24,14 @@ if (file.exists(f)) {
     stopifnot(!any(grepl("u", q_no_u_words)))
 }
 
+## verify that bad filters don't crash (within reason)
+stopifnot(tryCatch(read_demo(f, "x", filters),
+                   error = function(e) TRUE))
+
+bad_filters <- filters
+bad_filters[["a"]] <- new("externalptr")
+stopifnot(tryCatch(read_demo(f, "b | a", bad_filters),
+                   error = function(e) TRUE))
 
 
 ## force gc to test finalizers

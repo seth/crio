@@ -3,6 +3,7 @@
 #include <R_ext/RS.h>
 #include "crio/crio_mem.h"
 #include "crio/crio_eval.h"
+#include "crio_util.h"
 
 #define PKG "crio"
 
@@ -49,12 +50,13 @@ SEXP crio_filter_make_xp(const char *name,
                          SEXP filter_ctx)
 {
     SEXP xp;
+    char *name_buf;
+    char *fmt = CRIO_XP_FILTER_PREFIX ": %s";
+    int len = strlen(name) + strlen(fmt) + 1;
     struct crio_filter *cf = crio_filter_make(name, filter, filter_ctx, NULL);
-    /* FIXME: add "crio filter:" prefix to extptr tag here.  This will allow
-       for a fairly reliable means to ensure that a given extptr is indeed
-       a crio filter.
-     */
-    PROTECT(xp = R_MakeExternalPtr(cf, mkString(name), filter_ctx));
+    name_buf = (char *)R_alloc(len, sizeof(char));
+    snprintf(name_buf, len, fmt, name);
+    PROTECT(xp = R_MakeExternalPtr(cf, mkString(name_buf), filter_ctx));
     R_RegisterCFinalizerEx(xp, crio_filter_xp_free, 0);
     UNPROTECT(1);
     return xp;
@@ -97,7 +99,7 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
             Rf_error("unknown error in crio_stream_make_xp");
     }
     csxp->stream = crio_stream_make(read, file, filename, ctx, ast);
-    PROTECT(xp = R_MakeExternalPtr(csxp, mkString("crio_stream"),
+    PROTECT(xp = R_MakeExternalPtr(csxp, mkString(CRIO_XP_STREAM_PREFIX),
                                    R_NilValue));
     R_RegisterCFinalizerEx(xp, crio_stream_xp_free, 0);
     UNPROTECT(1);
@@ -107,7 +109,9 @@ SEXP crio_stream_make_xp(int (*read)(struct crio_stream *stream),
 
 SEXP crio_reset_file_xp(SEXP xp, void *file, const char *filename)
 {
-    struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
+    struct stream_pair *csxp;
+    crio_check_xp(xp, CRIO_XP_STREAM_PREFIX);
+    csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     csxp->stream = crio_reset_file(csxp->stream, file, filename);
     return xp;
 }
@@ -119,16 +123,22 @@ int crio_next_with_pool(struct crio_stream *stream, struct _crio_mpool *pool);
 
 int crio_next_xp(SEXP xp)
 {
-    struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
-    size_t mark = crio_mpool_mark(csxp->pool);
-    int ret = crio_next_with_pool(csxp->stream, csxp->pool);
+    size_t mark;
+    int ret;
+    struct stream_pair *csxp;
+    crio_check_xp(xp, CRIO_XP_STREAM_PREFIX);
+    csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
+    mark = crio_mpool_mark(csxp->pool);
+    ret = crio_next_with_pool(csxp->stream, csxp->pool);
     crio_mpool_drain_to_mark(csxp->pool, mark);
     return ret;
 }
 
 void crio_set_errmsg_xp(SEXP xp, const char *fmt, ...)
 {
-    struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
+    struct stream_pair *csxp;
+    crio_check_xp(xp, CRIO_XP_STREAM_PREFIX);
+    csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     va_list(ap);
     va_start(ap, fmt);
     crio_vset_errmsg(csxp->stream, fmt, ap);
@@ -137,16 +147,17 @@ void crio_set_errmsg_xp(SEXP xp, const char *fmt, ...)
 
 const char * crio_errmsg_xp(SEXP xp)
 {
-    struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
+    struct stream_pair *csxp;
+    crio_check_xp(xp, CRIO_XP_STREAM_PREFIX);
+    csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     return crio_errmsg(csxp->stream);
 }
 
 void *
 crio_context_from_xp(SEXP xp)
 {
-    struct stream_pair *csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
+    struct stream_pair *csxp;
+    crio_check_xp(xp, CRIO_XP_STREAM_PREFIX);
+    csxp = (struct stream_pair *)R_ExternalPtrAddr(xp);
     return csxp->stream->ctx;
 }
-
-
-
