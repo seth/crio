@@ -18,10 +18,10 @@ if (file.exists(f)) {
     ab_words <- read_demo(f, "a | b", filters)
     stopifnot(all(grepl("a|b", ab_words)))
     q_words <- read_demo(f, "q", filters)
-    stopifnot(all(grepl("q", ab_words)))
+    stopifnot(all(grepl("q", q_words)))
     q_no_u_words <- read_demo(f, "q & !u", filters)
-    stopifnot(all(grepl("q", ab_words)))
-    stopifnot(any(grepl("u", ab_words)))
+    stopifnot(all(grepl("q", q_no_u_words)))
+    stopifnot(!any(grepl("u", q_no_u_words)))
 }
 
 
