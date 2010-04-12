@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -vf src/crio/*.o src/crio/*.so
+rm -vf tests/criodemo/src/*.o tests/criodemo/src/*.so
