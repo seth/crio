@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+lang="en" xml:lang="en">
+<head>
+<title>README</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2010-04-12 14:34:41 PDT"/>
+<meta name="author" content="Seth Falcon"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+
+<h1 class="title">README</h1>
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 crio package README </a>
+<ul>
+<li><a href="#sec-1.1">1.1 Why crio? </a></li>
+<li><a href="#sec-1.2">1.2 How does crio work? </a></li>
+<li><a href="#sec-1.3">1.3 Integrating crio into your package </a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> crio package README </h2>
+<div class="outline-text-2" id="text-1">
+
+
+</div>
+
+<div id="outline-container-1.1" class="outline-3">
+<h3 id="sec-1.1"><span class="section-number-3">1.1</span> Why crio? </h3>
+<div class="outline-text-3" id="text-1.1">
+
+
+<p>
+The crio package helps R package developers implement stream-based
+filtering on large un-indexed data files.  Without crio, a typical
+workflow involves reading data into R, possibly in batches, and
+performing filtering operations at the R level.  In some cases, the
+overhead of reading the data into R can be substantial.  The crio
+framework provides a means of executing filters written in C before
+data is brought into R.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-1.2" class="outline-3">
+<h3 id="sec-1.2"><span class="section-number-3">1.2</span> How does crio work? </h3>
+<div class="outline-text-3" id="text-1.2">
+
+
+<p>
+To use the crio framework, a package creates a crio stream object
+using crio's C API.  The stream encapsulates the file containing the
+data, a function that knows how to read a record from the file, a
+reference to a user supplied context object, and the desired filtering
+operation.
+</p>
+<p>
+Here's an example call:
+</p>
+
+
+
+<pre class="src src-c">xp = crio_stream_make_xp(reader,
+                         file,
+                         fname,
+                         context,
+                         expr, rho);
+</pre>
+
+
+
+<p>
+where
+</p>
+<ul>
+<li>
+<code>reader</code> is a function that reads records from
+the file.
+
+</li>
+<li>
+<code>file</code> can be thought of as a file handle, but can be anything (a gz
+file handle, for example).
+
+</li>
+<li>
+<code>fname</code> is a label for <code>file</code>, used mostly for error reporting
+
+</li>
+<li>
+<code>context</code> is a user supplied context object that is threaded through
+all crio operations.  Generally, the <code>reader</code> function will store a
+record into a buffer in the context object and filter functions will
+look at the context to view the current record.
+
+</li>
+<li>
+<code>expr</code> is an R expression describing a logical combination of filter
+functions.  For example: <code>quote(a | (b &amp; !c))</code>.
+
+</li>
+<li>
+<code>rho</code> is an R environment that maps the symbols used in <code>expr</code> to
+crio filter functions.
+
+</li>
+</ul>
+
+<p>Once a crio stream is created, package code can call
+<code>crio_stream_next_xp(stream)</code> to obtain the next record that passes
+the filter.  What actually happens internally is that the reader function is
+called until a record is found that passes the filter.  At this point,
+the record passing filter is available in the <code>context</code> object for
+further processing (conversion into R data structures, for example).
+</p>
+<p>
+While the reader and filter functions must be written in C (and follow
+the signature defined by the crio API), the framework allows for some
+flexibility in filtering by allowing a user to specify a boolean
+expression describing the final filter.  To make this concrete,
+consider two filter functions <code>q</code> and <code>u</code>.  Filter <code>q</code> selects records
+that contain the letter "q" and filter <code>u</code> selects records that
+contain the letter "u".  Then words that contain the letter "q", but
+no "u" could be obtain by specifying a filter expression of <code>q &amp; !u</code>.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-1.3" class="outline-3">
+<h3 id="sec-1.3"><span class="section-number-3">1.3</span> Integrating crio into your package </h3>
+<div class="outline-text-3" id="text-1.3">
+
+
+<p>
+To integrate crio into your package, have a look at the criodemo
+package provided in the tests subdirectory in a crio source package.
+The criodemo package shows how to integrate crio to perform some
+simple filtering operations on text files.
+</p></div>
+</div>
+</div>
+<div id="postamble">
+<p class="author"> Author: Seth Falcon
+</p>
+<p class="date"> Date: 2010-04-12 14:34:41 PDT</p>
+<p class="creator">HTML generated by org-mode 6.34trans in emacs 23</p>
+</div>
+</div>
+</body>
+</html>
