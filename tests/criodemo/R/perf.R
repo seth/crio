@@ -18,7 +18,7 @@ multi_filter <- function(fname)
 make_file <- function(N=10000, W=100, seed = 0x8bba, f = NULL)
 {
     set.seed(seed)
-    data_lines <- make_data(N, W)
+    data_lines <- crio:::.make_data(N, W)
     tf <- if (is.null(f)) tempfile() else f
     writeLines(data_lines, con = tf)
     tf

@@ -1,5 +1,8 @@
 library("crio")
 
+dummy_filter <- crio:::.dummy_filter
+build_ast <- crio:::.build_ast
+
 e <- new.env(parent=emptyenv(), hash = TRUE)
 e[["a"]] <- dummy_filter("aa", 1)
 e[["b"]] <- dummy_filter("bb", 2)

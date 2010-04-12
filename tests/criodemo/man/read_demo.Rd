@@ -32,7 +32,7 @@ filters <- list(
                 c = substr_filter("c"))
 
 set.seed(0x8bba)
-data_lines <- make_data(10000, 100)
+data_lines <- crio:::.make_data(10000, 100)
 tf <- tempfile()
 writeLines(data_lines, con = tf)
 

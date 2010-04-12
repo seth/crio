@@ -1,5 +1,8 @@
 library("crio")
 
+strstr_filter <- crio:::.strstr_filter
+eval_test <- crio:::.eval_test
+
 e <- new.env(parent=emptyenv(), hash = TRUE)
 e[["a"]] <- strstr_filter("a")
 e[["b"]] <- strstr_filter("b")

@@ -1,5 +1,10 @@
 library("crio")
 
+strstr_filter <- crio:::.strstr_filter
+filter_file <- crio:::.filter_file
+filter_file.r <- crio:::.filter_file.r
+make_data <- crio:::.make_data
+
 e <- new.env(parent=emptyenv(), hash = TRUE)
 e[["a"]] <- strstr_filter("a")
 e[["b"]] <- strstr_filter("b")
