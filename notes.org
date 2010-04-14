@@ -25,7 +25,8 @@ f1, f2, f3, and f4 each mapping to an external pointer as returned by
 use.
 
 
-* TODO Handle missing filters in R environment error
+* DONE Handle missing filters in R environment error
+  CLOSED: [2010-04-12 Mon 13:48]
 User could specify bad arguments and we should report a useful error
 message.
 * TODO Need safety mechanism to ensure filter's match context
