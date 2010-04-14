@@ -2,8 +2,16 @@ Package: crio
 Type: Package
 Title: Utilities for C-level I/O in R packages
 Version: 0.0.4
-Author: S. Falcon
-Maintainer: S. Falcon <sfalcon@fhcrc.org>
-Description: Coming soon
+Author: Seth Falcon
+Maintainer: Seth Falcon <sfalcon@fhcrc.org>
+Description: The crio package helps R package developers implement
+    stream-based filtering of large un-indexed data files.  Without
+    crio, a typical workflow involves reading data into R, possibly in
+    batches, and performing filtering operations at the R level.  In
+    some cases, the overhead of reading the data into R can be
+    substantial.  The crio framework provides a means of executing
+    filters written in C before data is brought into R.  An example of
+    how crio can be used is provided in a demo package 'criodemo'
+    available in the tests subdirectory of crio's source package.
 Depends: methods
 License: Artistic-2.0
