@@ -2,7 +2,7 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
-/* To use the crio C API, you need to include this "header" file in
+/* To use the crio C API, include the crio_stubs.c "header" file in
    the source file where you define the R_init_yourpackage
    initialization function.
 

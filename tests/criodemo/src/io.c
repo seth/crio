@@ -103,7 +103,7 @@ static int line_reader(struct crio_stream *stream)
  * '_fname': a character vector specifying the filename to read from
  *
  * 'expr': An R expression describing the logical combination of
- * filters.  See read_demo.R for how a chacter vector at R level can
+ * filters.  See read_demo.R for how a character vector at the R level can
  * be put in the right form.
  *
  * 'rho': An R environment mapping the symbols used in 'expr' to
@@ -122,7 +122,7 @@ SEXP _demo_filter_file(SEXP _fname, SEXP expr, SEXP rho)
     memset(buf, 0, 256);
 
     /* Here we create a new crio stream.  In this example, the stream
-     * is created and destroyed (via gc) in a single .Call call.  You
+     * is created and destroyed (via gc) in a single .Call call.  You can also
      * separate the creation and use of a crio stream external pointer
      * into separate .Call functions.  This would make sense if you
      * want to process the returned data at the R level in chunks.
@@ -145,6 +145,7 @@ SEXP _demo_filter_file(SEXP _fname, SEXP expr, SEXP rho)
      */
     while (CRIO_OK == (res = crio_next_xp(xp))) {
         if (i == ans_len) {
+            /* grow the answer buffer */
             ans_len *= 2;
             REPROTECT(ans = lengthgets(ans, ans_len), pidx);
         }
